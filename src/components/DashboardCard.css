@@ -1,0 +1,11 @@
+.dashboard-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+.card-title { font-size: 14px; color: #777; margin-bottom: 5px; }
+.card-value { font-size: 32px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+.card-trend.positive { color: #2ecc71; font-weight: bold; }
+.card-trend.negative { color: #e74c3c; font-weight: bold; }
+.card-trend.neutral { color: #555; font-weight: bold; }
