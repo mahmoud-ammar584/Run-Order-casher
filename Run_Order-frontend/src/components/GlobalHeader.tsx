@@ -15,7 +15,7 @@ import AIAssistant from './AIAssistant';
 
 const GlobalHeader = () => {
     const { colorMode, toggleColorMode } = useColorMode();
-    const { locale, toggleLanguage } = useLanguage();
+    const { locale, toggleLanguage, tr } = useLanguage();
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     return (
@@ -32,7 +32,6 @@ const GlobalHeader = () => {
             >
                 <Container maxW="container.xl">
                     <Flex h="60px" alignItems="center" justifyContent="space-between">
-                        {/* Logo */}
                         <HStack spacing={3}>
                             <Box
                                 w="40px"
@@ -53,9 +52,7 @@ const GlobalHeader = () => {
                             </Text>
                         </HStack>
 
-                        {/* Controls */}
                         <HStack spacing={3}>
-                            {/* Language Toggle */}
                             <Button
                                 size="sm"
                                 variant="outline"
@@ -66,17 +63,15 @@ const GlobalHeader = () => {
                                 {locale === 'ar' ? 'EN' : 'ع'}
                             </Button>
 
-                            {/* Theme Toggle */}
                             <IconButton
                                 size="sm"
                                 variant="outline"
                                 icon={colorMode === 'light' ? <FiMoon /> : <FiSun />}
                                 onClick={toggleColorMode}
-                                aria-label="Toggle theme"
+                                aria-label={tr('تبديل المظهر', 'Toggle theme')}
                                 colorScheme="blue"
                             />
 
-                            {/* AI Assistant Button */}
                             <Button
                                 size="sm"
                                 bgGradient="linear(to-r, purple.500, pink.500)"
@@ -90,18 +85,17 @@ const GlobalHeader = () => {
                                     transform: 'translateY(0)',
                                 }}
                                 onClick={onOpen}
-                                leftIcon={<Text>🧠</Text>}
+                                leftIcon={<Text>✨</Text>}
                                 boxShadow="md"
                                 transition="all 0.2s"
                             >
-                                {locale === 'ar' ? 'اسأل الذكاء الاصطناعي' : 'Ask AI'}
+                                {tr('اسأل الذكاء الاصطناعي', 'Ask AI')}
                             </Button>
                         </HStack>
                     </Flex>
                 </Container>
             </Box>
 
-            {/* AI Assistant Drawer */}
             <AIAssistant isOpen={isOpen} onClose={onClose} />
         </>
     );

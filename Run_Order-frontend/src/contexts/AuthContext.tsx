@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
 import { API_BASE } from '../config';
+import { useLanguage } from './LanguageContext';
 
 interface User {
     id: string;
@@ -22,6 +23,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+    const { tr } = useLanguage();
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -36,9 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setUser(JSON.parse(storedUser));
                 axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
             } else {
-                // Auto-login for testing (remove in production)
                 try {
-                    console.log('No stored credentials, attempting auto-login for testing...');
                     const response = await axios.post(`${API_BASE}/auth/login`, {
                         username: 'admin',
                         password: 'admin123'
@@ -49,13 +49,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     localStorage.setItem('token', access_token);
                     localStorage.setItem('user', JSON.stringify(userData));
                     axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-                    console.log('Auto-login successful!');
                 } catch (error) {
                     console.error('Auto-login failed:', error);
                 }
             }
 
-            // Setup axios interceptor to always include token
             axios.interceptors.request.use(
                 (config) => {
                     const currentToken = localStorage.getItem('token');
@@ -74,10 +72,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     const login = async (username: string, password: string) => {
-        console.log('Login attempt:', { username, API_BASE });
         try {
             const response = await axios.post(`${API_BASE}/auth/login`, { username, password });
-            console.log('Login response:', response.data);
             const { access_token, user: userData } = response.data;
 
             setToken(access_token);
@@ -93,10 +89,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const register = async (data: any) => {
-        console.log('Register attempt:', { data, API_BASE });
         try {
             const response = await axios.post(`${API_BASE}/auth/register`, data);
-            console.log('Register response:', response.data);
             const { access_token, user: userData } = response.data;
 
             setToken(access_token);
@@ -122,7 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (loading) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                <div>جاري التحميل...</div>
+                <div>{tr('جار التحميل...', 'Loading...')}</div>
             </div>
         );
     }

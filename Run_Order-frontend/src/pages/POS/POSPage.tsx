@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import {
     Box,
     Grid,
@@ -27,17 +27,19 @@ import {
     Stack,
     Flex,
 } from '@chakra-ui/react';
-import { FiSearch, FiPlus, FiShoppingCart, FiTrash2, FiMinus, FiPrinter } from 'react-icons/fi';
+import { FiSearch, FiPlus, FiShoppingCart, FiTrash2, FiMinus, FiPrinter, FiGlobe } from 'react-icons/fi';
 import { MdRestaurant, MdShoppingBag, MdDeliveryDining, MdTableRestaurant, MdPayment } from 'react-icons/md';
 import axios from 'axios';
 import QRCode from 'react-qr-code';
 import { API_BASE } from '../../config';
 import { usePOSStore } from '../../store/posStore';
 import { OrderType } from '../../types/definitions';
+import { useLanguage } from '../../contexts/LanguageContext';
 
-// Invoice Modal Component
 const InvoiceModal = ({ isOpen, onClose, orderData }: { isOpen: boolean; onClose: () => void; orderData: any }) => {
     const printRef = useRef<HTMLDivElement>(null);
+    const { tr } = useLanguage();
+    const currencyLabel = tr('ج.م', 'EGP');
 
     const handlePrint = () => {
         const printContent = printRef.current;
@@ -46,7 +48,7 @@ const InvoiceModal = ({ isOpen, onClose, orderData }: { isOpen: boolean; onClose
             document.body.innerHTML = printContent.innerHTML;
             window.print();
             document.body.innerHTML = originalContents;
-            window.location.reload(); // Reload to restore state
+            window.location.reload();
         }
     };
 
@@ -56,23 +58,23 @@ const InvoiceModal = ({ isOpen, onClose, orderData }: { isOpen: boolean; onClose
         <Modal isOpen={isOpen} onClose={onClose} size="lg">
             <ModalOverlay />
             <ModalContent>
-                <ModalHeader>فاتورة الطلب</ModalHeader>
+                <ModalHeader>{tr('فاتورة البيع', 'Sales Invoice')}</ModalHeader>
                 <ModalBody>
                     <Box ref={printRef} p={4} border="1px" borderColor="gray.200" borderRadius="md" bg="white">
                         <VStack spacing={4} align="stretch">
                             <Box textAlign="center" borderBottom="1px" borderColor="gray.200" pb={4}>
                                 <Text fontSize="2xl" fontWeight="bold">Run Order Restaurant</Text>
-                                <Text fontSize="sm" color="gray.500">Tax Invoice / فاتورة ضريبية</Text>
+                                <Text fontSize="sm" color="gray.500">{tr('فاتورة ضريبية', 'Tax Invoice')}</Text>
                                 <Text fontSize="sm">{new Date().toLocaleString()}</Text>
                             </Box>
 
                             <HStack justify="space-between">
-                                <Text>Order #:</Text>
+                                <Text>{tr('رقم الطلب', 'Order #')}</Text>
                                 <Text fontWeight="bold">{orderData.order_number || 'PENDING'}</Text>
                             </HStack>
                             {orderData.table_number && (
                                 <HStack justify="space-between">
-                                    <Text>Table:</Text>
+                                    <Text>{tr('الطاولة', 'Table')}</Text>
                                     <Text fontWeight="bold">{orderData.table_number}</Text>
                                 </HStack>
                             )}
@@ -82,8 +84,8 @@ const InvoiceModal = ({ isOpen, onClose, orderData }: { isOpen: boolean; onClose
                             <VStack align="stretch" spacing={2}>
                                 {orderData.items.map((item: any, index: number) => (
                                     <HStack key={index} justify="space-between">
-                                        <Text>{item.quantity}x {item.item_name || 'Item'}</Text>
-                                        <Text>{(item.total_price).toFixed(2)}</Text>
+                                        <Text>{item.quantity}x {item.item_name || tr('صنف', 'Item')}</Text>
+                                        <Text>{item.total_price.toFixed(2)} {currencyLabel}</Text>
                                     </HStack>
                                 ))}
                             </VStack>
@@ -92,16 +94,16 @@ const InvoiceModal = ({ isOpen, onClose, orderData }: { isOpen: boolean; onClose
 
                             <VStack align="stretch" spacing={1}>
                                 <HStack justify="space-between">
-                                    <Text>Subtotal:</Text>
-                                    <Text>{orderData.subtotal.toFixed(2)}</Text>
+                                    <Text>{tr('الإجمالي الفرعي', 'Subtotal')}</Text>
+                                    <Text>{orderData.subtotal.toFixed(2)} {currencyLabel}</Text>
                                 </HStack>
                                 <HStack justify="space-between">
-                                    <Text>Tax (14%):</Text>
-                                    <Text>{orderData.tax_amount.toFixed(2)}</Text>
+                                    <Text>{tr('الضريبة (14%)', 'Tax (14%)')}</Text>
+                                    <Text>{orderData.tax_amount.toFixed(2)} {currencyLabel}</Text>
                                 </HStack>
                                 <HStack justify="space-between">
-                                    <Text fontWeight="bold" fontSize="lg">Total:</Text>
-                                    <Text fontWeight="bold" fontSize="lg">{orderData.total.toFixed(2)}</Text>
+                                    <Text fontWeight="bold" fontSize="lg">{tr('الإجمالي', 'Total')}</Text>
+                                    <Text fontWeight="bold" fontSize="lg">{orderData.total.toFixed(2)} {currencyLabel}</Text>
                                 </HStack>
                             </VStack>
 
@@ -109,17 +111,19 @@ const InvoiceModal = ({ isOpen, onClose, orderData }: { isOpen: boolean; onClose
                                 <Flex justify="center">
                                     <QRCode value={`RunOrder-Invoice-${orderData.total}-${new Date().toISOString()}`} size={128} />
                                 </Flex>
-                                <Text fontSize="xs" mt={2} color="gray.500">Scan for e-invoice</Text>
+                                <Text fontSize="xs" mt={2} color="gray.500">
+                                    {tr('امسح لاستلام الفاتورة الإلكترونية', 'Scan for e-invoice')}
+                                </Text>
                             </Box>
                         </VStack>
                     </Box>
                 </ModalBody>
                 <ModalFooter>
                     <Button leftIcon={<FiPrinter />} colorScheme="blue" onClick={handlePrint} mr={3}>
-                        طباعة
+                        {tr('طباعة', 'Print')}
                     </Button>
                     <Button variant="ghost" onClick={onClose}>
-                        إغلاق
+                        {tr('إغلاق', 'Close')}
                     </Button>
                 </ModalFooter>
             </ModalContent>
@@ -128,6 +132,7 @@ const InvoiceModal = ({ isOpen, onClose, orderData }: { isOpen: boolean; onClose
 };
 
 const POSPage = () => {
+    const { tr, locale, setLocale } = useLanguage();
     const [categories, setCategories] = useState<any[]>([]);
     const [items, setItems] = useState<any[]>([]);
     const [tables, setTables] = useState<any[]>([]);
@@ -136,10 +141,10 @@ const POSPage = () => {
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [lastOrder, setLastOrder] = useState<any>(null);
 
+    const previousLocaleRef = useRef(locale);
     const { isOpen: isCheckoutOpen, onOpen: onCheckoutOpen, onClose: onCheckoutClose } = useDisclosure();
     const { isOpen: isTablesOpen, onOpen: onTablesOpen, onClose: onTablesClose } = useDisclosure();
     const { isOpen: isInvoiceOpen, onOpen: onInvoiceOpen, onClose: onInvoiceClose } = useDisclosure();
-
     const toast = useToast();
 
     const {
@@ -161,27 +166,52 @@ const POSPage = () => {
         resetCart,
     } = usePOSStore();
 
-    // Load initial data
+    const currencyLabel = tr('ج.م', 'EGP');
+
+    useEffect(() => {
+        previousLocaleRef.current = locale;
+    }, []);
+
+    useEffect(() => {
+        const loadPosLanguage = async () => {
+            try {
+                const response = await axios.get(`${API_BASE}/settings/pos-language`);
+                const posLanguage = response.data?.pos_language;
+                if (posLanguage === 'ar' || posLanguage === 'en') {
+                    setLocale(posLanguage, { persist: false });
+                }
+            } catch (error) {
+                console.error('Error loading POS language:', error);
+            }
+        };
+
+        loadPosLanguage();
+        return () => {
+            setLocale(previousLocaleRef.current, { persist: false });
+        };
+    }, []);
+
     useEffect(() => {
         loadCategories();
         loadItems();
         loadTables();
     }, []);
 
+    const getLocalizedName = (entity: any) => {
+        if (!entity) return '';
+        return locale === 'ar' ? entity.name_ar : (entity.name_en || entity.name_ar);
+    };
 
     const loadCategories = async () => {
         try {
-            console.log('Loading categories from:', `${API_BASE}/categories/active`);
             const response = await axios.get(`${API_BASE}/categories/active`);
-            console.log('Categories response:', response.data);
             setCategories(response.data);
             if (response.data.length > 0) {
                 setSelectedCategory(response.data[0].id);
             } else {
-                console.warn('No categories found');
                 toast({
-                    title: 'لا توجد أقسام',
-                    description: 'يرجى إضافة أقسام من صفحة إدارة الأقسام',
+                    title: tr('لا توجد تصنيفات', 'No categories found'),
+                    description: tr('يرجى إضافة تصنيفات من لوحة التحكم أولًا.', 'Please add categories from the dashboard first.'),
                     status: 'warning',
                     duration: 5000,
                 });
@@ -189,7 +219,7 @@ const POSPage = () => {
         } catch (error: any) {
             console.error('Error loading categories:', error);
             toast({
-                title: 'خطأ في تحميل الأقسام',
+                title: tr('تعذر تحميل التصنيفات', 'Failed to load categories'),
                 description: error.response?.data?.message || error.message,
                 status: 'error',
                 duration: 5000,
@@ -199,15 +229,12 @@ const POSPage = () => {
 
     const loadItems = async () => {
         try {
-            console.log('Loading items from:', `${API_BASE}/items/available`);
             const response = await axios.get(`${API_BASE}/items/available`);
-            console.log('Items response:', response.data);
             setItems(response.data);
             if (response.data.length === 0) {
-                console.warn('No items found');
                 toast({
-                    title: 'لا توجد أصناف',
-                    description: 'يرجى إضافة أصناف من صفحة إدارة الأصناف',
+                    title: tr('لا توجد أصناف', 'No items found'),
+                    description: tr('يرجى إضافة الأصناف من لوحة التحكم أولًا.', 'Please add items from the dashboard first.'),
                     status: 'warning',
                     duration: 5000,
                 });
@@ -215,7 +242,7 @@ const POSPage = () => {
         } catch (error: any) {
             console.error('Error loading items:', error);
             toast({
-                title: 'خطأ في تحميل الأصناف',
+                title: tr('تعذر تحميل الأصناف', 'Failed to load items'),
                 description: error.response?.data?.message || error.message,
                 status: 'error',
                 duration: 5000,
@@ -235,7 +262,7 @@ const POSPage = () => {
     const handleTableSelect = (table: any) => {
         if (table.status === 'occupied') {
             toast({
-                title: 'الطاولة مشغولة',
+                title: tr('الطاولة مشغولة', 'Table is occupied'),
                 status: 'warning',
                 duration: 2000,
             });
@@ -244,22 +271,26 @@ const POSPage = () => {
         setCustomerInfo('tableNumber', table.table_number);
         onTablesClose();
         toast({
-            title: `تم اختيار الطاولة ${table.table_number}`,
+            title: tr(`تم اختيار الطاولة ${table.table_number}`, `Table ${table.table_number} selected`),
             status: 'success',
             duration: 2000,
         });
     };
 
-    // فلترة الأصناف حسب القسم المختار
-    const filteredItems = items.filter(
-        (item) => item.category_id === selectedCategory && item.is_available
-    );
+    const filteredItems = items.filter((item) => {
+        const matchesCategory = selectedCategory ? item.category_id === selectedCategory : true;
+        const query = searchQuery.trim().toLowerCase();
+        const matchesQuery = !query
+            || item.name_ar?.includes(searchQuery)
+            || item.name_en?.toLowerCase().includes(query)
+            || item.sku?.toLowerCase().includes(query);
+        return matchesCategory && item.is_available && matchesQuery;
+    });
 
-    // إتمام الطلب
     const handleCheckout = async () => {
         if (cartItems.length === 0) {
             toast({
-                title: 'السلة فارغة',
+                title: tr('السلة فارغة', 'Cart is empty'),
                 status: 'warning',
                 duration: 2000,
             });
@@ -268,7 +299,7 @@ const POSPage = () => {
 
         if (orderType === OrderType.DINE_IN && !tableNumber) {
             toast({
-                title: 'يرجى اختيار طاولة',
+                title: tr('يرجى اختيار طاولة', 'Please select a table'),
                 status: 'warning',
                 duration: 2000,
             });
@@ -277,8 +308,7 @@ const POSPage = () => {
         }
 
         try {
-            // تحويل cartItems إلى الصيغة المطلوبة من الـ Backend
-            const apiOrderItems = cartItems.map(cartItem => {
+            const apiOrderItems = cartItems.map((cartItem) => {
                 const unitPrice = cartItem.total_price / cartItem.quantity;
                 return {
                     item_id: cartItem.item.id,
@@ -290,10 +320,9 @@ const POSPage = () => {
                 };
             });
 
-            // Prepare data for invoice (needs names)
-            const invoiceItems = cartItems.map(cartItem => ({
+            const invoiceItems = cartItems.map((cartItem) => ({
                 ...cartItem,
-                item_name: cartItem.item.name_ar,
+                item_name: locale === 'ar' ? cartItem.item.name_ar : (cartItem.item.name_en || cartItem.item.name_ar),
                 unit_price: cartItem.total_price / cartItem.quantity,
             }));
 
@@ -307,36 +336,33 @@ const POSPage = () => {
                 discount_amount: parseFloat((discountAmount || 0).toFixed(2)),
                 total: parseFloat(total.toFixed(2)),
                 payment_method: paymentMethod === 'visa' ? 'card' : paymentMethod,
-                items: apiOrderItems, // Send clean items to API
+                items: apiOrderItems,
                 notes: notes || null,
             };
 
             const response = await axios.post(`${API_BASE}/orders`, orderPayload);
 
             toast({
-                title: 'تم إتمام الطلب بنجاح',
+                title: tr('تم إنشاء الطلب بنجاح', 'Order created successfully'),
                 status: 'success',
                 duration: 3000,
             });
 
-            // Prepare data for invoice
             setLastOrder({
                 ...orderPayload,
                 order_number: response.data.order_number,
-                items: invoiceItems // Use items with names for invoice
+                items: invoiceItems,
             });
 
             resetCart();
             onCheckoutClose();
-            onInvoiceOpen(); // Open invoice modal
-
-            // Reload tables to update status if needed
+            onInvoiceOpen();
             loadTables();
         } catch (error: any) {
             console.error('Error creating order:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'لم نتمكن من إتمام الطلب';
+            const errorMessage = error.response?.data?.message || error.message || tr('تعذر إنشاء الطلب', 'Failed to create order');
             toast({
-                title: 'حدث خطأ',
+                title: tr('حدث خطأ', 'Error'),
                 description: Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage,
                 status: 'error',
                 duration: 5000,
@@ -345,25 +371,35 @@ const POSPage = () => {
         }
     };
 
+    const handleToggleLocale = () => {
+        setLocale(locale === 'ar' ? 'en' : 'ar', { persist: false });
+    };
+
     return (
         <Box h="100vh" bg="gray.50" overflow="hidden">
             <Grid templateColumns="1fr 400px" h="full">
-                {/* القسم الأيسر: الأقسام والأصناف */}
                 <Box p={4} overflowY="auto">
-                    {/* شريط البحث */}
+                    <HStack justify="space-between" mb={4}>
+                        <Text fontSize="2xl" fontWeight="bold">
+                            {tr('نقطة البيع', 'Point of Sale')}
+                        </Text>
+                        <Button size="sm" variant="outline" leftIcon={<FiGlobe />} onClick={handleToggleLocale}>
+                            {locale === 'ar' ? 'EN' : 'ع'}
+                        </Button>
+                    </HStack>
+
                     <InputGroup mb={4} size="lg">
                         <InputLeftElement>
                             <FiSearch />
                         </InputLeftElement>
                         <Input
-                            placeholder="ابحث عن صنف..."
+                            placeholder={tr('ابحث عن صنف...', 'Search for an item...')}
                             bg="white"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </InputGroup>
 
-                    {/* الأقسام */}
                     <HStack spacing={3} mb={4} overflowX="auto" pb={2}>
                         {categories.map((cat) => (
                             <Button
@@ -374,12 +410,11 @@ const POSPage = () => {
                                 variant={selectedCategory === cat.id ? 'solid' : 'outline'}
                                 onClick={() => setSelectedCategory(cat.id)}
                             >
-                                {cat.name_ar}
+                                {getLocalizedName(cat)}
                             </Button>
                         ))}
                     </HStack>
 
-                    {/* الأصناف */}
                     <SimpleGrid columns={{ base: 2, md: 3, lg: 4 }} spacing={4}>
                         {filteredItems.map((item) => (
                             <Box
@@ -395,24 +430,24 @@ const POSPage = () => {
                             >
                                 <Image
                                     src={item.image_url}
-                                    alt={item.name_ar}
+                                    alt={getLocalizedName(item)}
                                     h="150px"
                                     w="full"
                                     objectFit="cover"
                                 />
                                 <VStack p={3} align="stretch" spacing={2}>
                                     <Text fontWeight="bold" fontSize="md" noOfLines={1}>
-                                        {item.name_ar}
+                                        {getLocalizedName(item)}
                                     </Text>
                                     <HStack justify="space-between">
                                         <Badge colorScheme="green" fontSize="md" px={2} py={1} borderRadius="md">
-                                            {item.base_price} ج.م
+                                            {item.base_price} {currencyLabel}
                                         </Badge>
                                         <IconButton
                                             icon={<FiPlus />}
                                             size="sm"
                                             colorScheme="blue"
-                                            aria-label="Add"
+                                            aria-label={tr('إضافة', 'Add')}
                                         />
                                     </HStack>
                                 </VStack>
@@ -421,23 +456,20 @@ const POSPage = () => {
                     </SimpleGrid>
                 </Box>
 
-                {/* القسم الأيمن: السلة */}
                 <Box bg="white" borderLeft="1px" borderColor="gray.200" display="flex" flexDir="column">
-                    {/* رأس السلة */}
                     <Box p={4} borderBottom="1px" borderColor="gray.200">
                         <HStack justify="space-between" mb={3}>
                             <HStack>
                                 <FiShoppingCart size={24} />
                                 <Text fontSize="xl" fontWeight="bold">
-                                    الطلب الحالي
+                                    {tr('سلة الطلب', 'Order Cart')}
                                 </Text>
                             </HStack>
                             <Badge colorScheme="blue" fontSize="md" px={3} py={1}>
-                                {cartItems.length} صنف
+                                {cartItems.length} {tr('صنف', 'Items')}
                             </Badge>
                         </HStack>
 
-                        {/* نوع الطلب */}
                         <HStack spacing={2} mb={3}>
                             <Button
                                 size="sm"
@@ -447,7 +479,7 @@ const POSPage = () => {
                                 onClick={() => setOrderType(OrderType.DINE_IN)}
                                 flex={1}
                             >
-                                داخلي
+                                {tr('محلي', 'Dine In')}
                             </Button>
                             <Button
                                 size="sm"
@@ -457,7 +489,7 @@ const POSPage = () => {
                                 onClick={() => setOrderType(OrderType.TAKEOUT)}
                                 flex={1}
                             >
-                                تيك أواي
+                                {tr('تيك أواي', 'Takeout')}
                             </Button>
                             <Button
                                 size="sm"
@@ -467,11 +499,10 @@ const POSPage = () => {
                                 onClick={() => setOrderType(OrderType.DELIVERY)}
                                 flex={1}
                             >
-                                توصيل
+                                {tr('توصيل', 'Delivery')}
                             </Button>
                         </HStack>
 
-                        {/* زر اختيار الطاولة (يظهر فقط في حالة الداخلي) */}
                         {orderType === OrderType.DINE_IN && (
                             <Button
                                 w="full"
@@ -480,18 +511,17 @@ const POSPage = () => {
                                 variant="outline"
                                 onClick={onTablesOpen}
                             >
-                                {tableNumber ? `طاولة رقم ${tableNumber}` : 'اختر طاولة'}
+                                {tableNumber ? tr(`طاولة رقم ${tableNumber}`, `Table ${tableNumber}`) : tr('اختيار طاولة', 'Select table')}
                             </Button>
                         )}
                     </Box>
 
-                    {/* قائمة السلة */}
                     <VStack flex={1} overflowY="auto" p={4} spacing={3} align="stretch">
                         {cartItems.length === 0 ? (
                             <VStack justify="center" h="full" opacity={0.5}>
                                 <FiShoppingCart size={64} />
                                 <Text fontSize="lg" color="gray.500">
-                                    السلة فارغة
+                                    {tr('السلة فارغة', 'Cart is empty')}
                                 </Text>
                             </VStack>
                         ) : (
@@ -506,7 +536,7 @@ const POSPage = () => {
                                 >
                                     <HStack justify="space-between" mb={2}>
                                         <Text fontWeight="bold" flex={1}>
-                                            {cartItem.item.name_ar}
+                                            {getLocalizedName(cartItem.item)}
                                         </Text>
                                         <IconButton
                                             icon={<FiTrash2 />}
@@ -514,7 +544,7 @@ const POSPage = () => {
                                             colorScheme="red"
                                             variant="ghost"
                                             onClick={() => removeFromCart(index)}
-                                            aria-label="Remove"
+                                            aria-label={tr('حذف', 'Remove')}
                                         />
                                     </HStack>
 
@@ -524,7 +554,7 @@ const POSPage = () => {
                                                 icon={<FiMinus />}
                                                 size="sm"
                                                 onClick={() => updateQuantity(index, cartItem.quantity - 1)}
-                                                aria-label="Decrease"
+                                                aria-label={tr('تقليل', 'Decrease')}
                                             />
                                             <Text fontWeight="bold" minW="30px" textAlign="center">
                                                 {cartItem.quantity}
@@ -534,11 +564,11 @@ const POSPage = () => {
                                                 size="sm"
                                                 colorScheme="blue"
                                                 onClick={() => updateQuantity(index, cartItem.quantity + 1)}
-                                                aria-label="Increase"
+                                                aria-label={tr('زيادة', 'Increase')}
                                             />
                                         </HStack>
                                         <Text fontWeight="bold" color="blue.600">
-                                            {cartItem.total_price.toFixed(2)} ج.م
+                                            {cartItem.total_price.toFixed(2)} {currencyLabel}
                                         </Text>
                                     </HStack>
                                 </Box>
@@ -546,24 +576,23 @@ const POSPage = () => {
                         )}
                     </VStack>
 
-                    {/* الإجماليات والدفع */}
                     <Box p={4} borderTop="1px" borderColor="gray.200">
                         <VStack spacing={2} mb={4}>
                             <HStack justify="space-between" w="full">
-                                <Text>المجموع الفرعي:</Text>
-                                <Text fontWeight="bold">{subtotal.toFixed(2)} ج.م</Text>
+                                <Text>{tr('الإجمالي الفرعي', 'Subtotal')}:</Text>
+                                <Text fontWeight="bold">{subtotal.toFixed(2)} {currencyLabel}</Text>
                             </HStack>
                             <HStack justify="space-between" w="full">
-                                <Text>الضريبة (14%):</Text>
-                                <Text fontWeight="bold">{taxAmount.toFixed(2)} ج.م</Text>
+                                <Text>{tr('الضريبة (14%)', 'Tax (14%)')}:</Text>
+                                <Text fontWeight="bold">{taxAmount.toFixed(2)} {currencyLabel}</Text>
                             </HStack>
                             <Divider />
                             <HStack justify="space-between" w="full">
                                 <Text fontSize="lg" fontWeight="bold">
-                                    الإجمالي:
+                                    {tr('الإجمالي', 'Total')}:
                                 </Text>
                                 <Text fontSize="2xl" fontWeight="bold" color="blue.600">
-                                    {total.toFixed(2)} ج.م
+                                    {total.toFixed(2)} {currencyLabel}
                                 </Text>
                             </HStack>
                         </VStack>
@@ -575,17 +604,16 @@ const POSPage = () => {
                             isDisabled={cartItems.length === 0}
                             onClick={onCheckoutOpen}
                         >
-                            إتمام الطلب
+                            {tr('إتمام الدفع', 'Checkout')}
                         </Button>
                     </Box>
                 </Box>
             </Grid>
 
-            {/* نافذة اختيار الطاولة */}
             <Modal isOpen={isTablesOpen} onClose={onTablesClose} size="xl">
                 <ModalOverlay />
                 <ModalContent>
-                    <ModalHeader>اختر الطاولة</ModalHeader>
+                    <ModalHeader>{tr('اختيار الطاولة', 'Select Table')}</ModalHeader>
                     <ModalBody pb={6}>
                         <SimpleGrid columns={4} spacing={4}>
                             {tables.map((table) => (
@@ -600,9 +628,11 @@ const POSPage = () => {
                                     gap={2}
                                 >
                                     <MdTableRestaurant size={24} />
-                                    <Text>طاولة {table.table_number}</Text>
+                                    <Text>{tr('طاولة', 'Table')} {table.table_number}</Text>
                                     <Text fontSize="xs">
-                                        {table.status === 'available' ? 'متاح' : 'مشغول'}
+                                        {table.status === 'available'
+                                            ? tr('متاحة', 'Available')
+                                            : tr('مشغولة', 'Occupied')}
                                     </Text>
                                 </Button>
                             ))}
@@ -611,28 +641,25 @@ const POSPage = () => {
                 </ModalContent>
             </Modal>
 
-            {/* نافذة إتمام الطلب */}
             <Modal isOpen={isCheckoutOpen} onClose={onCheckoutClose} size="xl">
                 <ModalOverlay />
                 <ModalContent>
-                    <ModalHeader>إتمام الطلب</ModalHeader>
+                    <ModalHeader>{tr('إتمام الدفع', 'Checkout')}</ModalHeader>
                     <ModalBody>
                         <VStack spacing={6} align="stretch">
-                            {/* ملخص المبلغ */}
                             <Box p={4} bg="gray.50" borderRadius="lg">
                                 <HStack justify="space-between" w="full">
                                     <Text fontSize="lg" fontWeight="bold">
-                                        الإجمالي النهائي:
+                                        {tr('الإجمالي المستحق', 'Amount due')}:
                                     </Text>
                                     <Text fontSize="2xl" fontWeight="bold" color="green.600">
-                                        {total.toFixed(2)} ج.م
+                                        {total.toFixed(2)} {currencyLabel}
                                     </Text>
                                 </HStack>
                             </Box>
 
-                            {/* وسائل الدفع */}
                             <Box>
-                                <Text fontWeight="bold" mb={3}>وسيلة الدفع:</Text>
+                                <Text fontWeight="bold" mb={3}>{tr('طريقة الدفع', 'Payment method')}:</Text>
                                 <RadioGroup onChange={setPaymentMethod} value={paymentMethod}>
                                     <Stack direction="row" spacing={4}>
                                         <Box
@@ -645,7 +672,7 @@ const POSPage = () => {
                                             bg={paymentMethod === 'cash' ? 'blue.50' : 'white'}
                                             borderColor={paymentMethod === 'cash' ? 'blue.500' : 'gray.200'}
                                         >
-                                            <Radio value="cash" mb={2}>نقدي (Cash)</Radio>
+                                            <Radio value="cash" mb={2}>{tr('نقدي', 'Cash')}</Radio>
                                             <Flex justify="center"><MdPayment size={24} /></Flex>
                                         </Box>
                                         <Box
@@ -658,7 +685,7 @@ const POSPage = () => {
                                             bg={paymentMethod === 'visa' ? 'blue.50' : 'white'}
                                             borderColor={paymentMethod === 'visa' ? 'blue.500' : 'gray.200'}
                                         >
-                                            <Radio value="visa" mb={2}>فيزا (Visa)</Radio>
+                                            <Radio value="visa" mb={2}>{tr('بطاقة', 'Card')}</Radio>
                                             <Flex justify="center"><MdPayment size={24} /></Flex>
                                         </Box>
                                     </Stack>
@@ -668,16 +695,15 @@ const POSPage = () => {
                     </ModalBody>
                     <ModalFooter>
                         <Button variant="ghost" mr={3} onClick={onCheckoutClose}>
-                            إلغاء
+                            {tr('إلغاء', 'Cancel')}
                         </Button>
                         <Button colorScheme="green" onClick={handleCheckout} size="lg">
-                            تأكيد ودفع
+                            {tr('تأكيد الدفع', 'Confirm payment')}
                         </Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>
 
-            {/* Invoice Modal */}
             <InvoiceModal isOpen={isInvoiceOpen} onClose={onInvoiceClose} orderData={lastOrder} />
         </Box>
     );

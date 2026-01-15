@@ -17,14 +17,15 @@ import { MdRestaurant, MdDeliveryDining, MdShoppingBag } from 'react-icons/md';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 import { API_BASE } from '../../config';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const WS_URL = 'http://localhost:3000';
 
 const KitchenDisplayPage = () => {
+    const { tr, locale } = useLanguage();
     const [currentTime, setCurrentTime] = useState(new Date());
     const [orders, setOrders] = useState<any[]>([]);
 
-    // تحديث الوقت كل ثانية
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentTime(new Date());
@@ -32,20 +33,16 @@ const KitchenDisplayPage = () => {
         return () => clearInterval(timer);
     }, []);
 
-    // Load pending orders
     useEffect(() => {
         loadOrders();
 
-        // Setup WebSocket connection
         const socket = io(WS_URL);
 
-        socket.on('new-order', (order) => {
-            console.log('New order received:', order);
+        socket.on('new-order', () => {
             loadOrders();
         });
 
-        socket.on('order-status-updated', (data) => {
-            console.log('Order status updated:', data);
+        socket.on('order-status-updated', () => {
             loadOrders();
         });
 
@@ -88,9 +85,9 @@ const KitchenDisplayPage = () => {
 
     const getOrderTypeText = (type: string) => {
         switch (type) {
-            case 'dine_in': return 'داخلي';
-            case 'takeout': return 'تيك أواي';
-            case 'delivery': return 'توصيل';
+            case 'dine_in': return tr('داخلي', 'Dine in');
+            case 'takeout': return tr('تيك أواي', 'Takeout');
+            case 'delivery': return tr('توصيل', 'Delivery');
             default: return '';
         }
     };
@@ -108,26 +105,25 @@ const KitchenDisplayPage = () => {
 
     return (
         <Box h="100vh" bg="gray.900" color="white" overflow="hidden">
-            {/* الهيدر */}
             <Box bg="gray.800" p={4} borderBottom="2px" borderColor="gray.700">
                 <HStack justify="space-between">
                     <HStack spacing={4}>
                         <FiPackage size={32} color="#3182ce" />
                         <VStack align="start" spacing={0}>
                             <Heading size="lg" color="white">
-                                شاشة المطبخ
+                                {tr('شاشة المطبخ', 'Kitchen Display')}
                             </Heading>
                             <Text fontSize="sm" color="gray.400">
-                                Kitchen Display System
+                                {tr('نظام عرض الطلبات', 'Kitchen Display System')}
                             </Text>
                         </VStack>
                     </HStack>
                     <VStack align="end" spacing={0}>
                         <Text fontSize="3xl" fontWeight="bold">
-                            {currentTime.toLocaleTimeString('ar-EG')}
+                            {currentTime.toLocaleTimeString(locale === 'ar' ? 'ar-EG' : 'en-US')}
                         </Text>
                         <Text fontSize="md" color="gray.400">
-                            {currentTime.toLocaleDateString('ar-EG', {
+                            {currentTime.toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', {
                                 weekday: 'long',
                                 year: 'numeric',
                                 month: 'long',
@@ -138,13 +134,12 @@ const KitchenDisplayPage = () => {
                 </HStack>
             </Box>
 
-            {/* الإحصائيات السريعة */}
             <HStack spacing={4} p={4} bg="gray.800">
                 <Card bg="blue.600" color="white" flex={1}>
                     <CardBody>
                         <HStack justify="space-between">
                             <VStack align="start" spacing={0}>
-                                <Text fontSize="sm">طلبات جديدة</Text>
+                                <Text fontSize="sm">{tr('طلبات جديدة', 'New orders')}</Text>
                                 <Text fontSize="3xl" fontWeight="bold">
                                     {pendingOrders.length}
                                 </Text>
@@ -157,7 +152,7 @@ const KitchenDisplayPage = () => {
                     <CardBody>
                         <HStack justify="space-between">
                             <VStack align="start" spacing={0}>
-                                <Text fontSize="sm">قيد التحضير</Text>
+                                <Text fontSize="sm">{tr('قيد التحضير', 'Preparing')}</Text>
                                 <Text fontSize="3xl" fontWeight="bold">
                                     {preparingOrders.length}
                                 </Text>
@@ -170,7 +165,7 @@ const KitchenDisplayPage = () => {
                     <CardBody>
                         <HStack justify="space-between">
                             <VStack align="start" spacing={0}>
-                                <Text fontSize="sm">جاهز</Text>
+                                <Text fontSize="sm">{tr('جاهز', 'Ready')}</Text>
                                 <Text fontSize="3xl" fontWeight="bold">
                                     {readyOrders.length}
                                 </Text>
@@ -181,12 +176,10 @@ const KitchenDisplayPage = () => {
                 </Card>
             </HStack>
 
-            {/* الطلبات */}
             <Grid templateColumns="repeat(3, 1fr)" gap={4} p={4} h="calc(100vh - 240px)" overflowY="auto">
-                {/* عمود الطلبات الجديدة */}
                 <VStack spacing={4} align="stretch">
                     <Badge colorScheme="blue" fontSize="lg" p={2} textAlign="center" borderRadius="md">
-                        طلبات جديدة ({pendingOrders.length})
+                        {tr('طلبات جديدة', 'New orders')} ({pendingOrders.length})
                     </Badge>
                     {pendingOrders.map((order) => {
                         const elapsed = getElapsedTime(order.created_at);
@@ -208,7 +201,7 @@ const KitchenDisplayPage = () => {
                                                 </Text>
                                                 <Text fontSize="sm" color="gray.600">
                                                     {getOrderTypeText(order.order_type)}
-                                                    {order.table_number && ` - طاولة ${order.table_number}`}
+                                                    {order.table_number && ` - ${tr('طاولة', 'Table')} ${order.table_number}`}
                                                 </Text>
                                             </VStack>
                                         </HStack>
@@ -217,7 +210,7 @@ const KitchenDisplayPage = () => {
                                             fontSize="lg"
                                             p={2}
                                         >
-                                            {elapsed} دقيقة
+                                            {elapsed} {tr('دقيقة', 'min')}
                                         </Badge>
                                     </HStack>
                                 </CardHeader>
@@ -226,7 +219,7 @@ const KitchenDisplayPage = () => {
                                         {order.items?.map((item: any, idx: number) => (
                                             <Box key={idx} p={2} bg="white" borderRadius="md">
                                                 <Text fontWeight="bold">
-                                                    {item.quantity}x {item.item?.name_ar || item.name || 'صنف'}
+                                                    {item.quantity}x {locale === 'ar' ? item.item?.name_ar : (item.item?.name_en || item.item?.name_ar) || item.name || tr('صنف', 'Item')}
                                                 </Text>
                                             </Box>
                                         ))}
@@ -238,7 +231,7 @@ const KitchenDisplayPage = () => {
                                         size="lg"
                                         onClick={() => updateOrderStatus(order.id, 'preparing')}
                                     >
-                                        بدء التحضير
+                                        {tr('بدء التحضير', 'Start preparing')}
                                     </Button>
                                 </CardBody>
                             </Card>
@@ -246,10 +239,9 @@ const KitchenDisplayPage = () => {
                     })}
                 </VStack>
 
-                {/* عمود قيد التحضير */}
                 <VStack spacing={4} align="stretch">
                     <Badge colorScheme="orange" fontSize="lg" p={2} textAlign="center" borderRadius="md">
-                        قيد التحضير ({preparingOrders.length})
+                        {tr('قيد التحضير', 'Preparing')} ({preparingOrders.length})
                     </Badge>
                     {preparingOrders.map((order) => {
                         const elapsed = getElapsedTime(order.created_at);
@@ -267,7 +259,7 @@ const KitchenDisplayPage = () => {
                                             {order.order_number}
                                         </Text>
                                         <Badge colorScheme={elapsed > 15 ? 'red' : 'orange'} fontSize="lg" p={2}>
-                                            {elapsed} دقيقة
+                                            {elapsed} {tr('دقيقة', 'min')}
                                         </Badge>
                                     </HStack>
                                 </CardHeader>
@@ -276,7 +268,7 @@ const KitchenDisplayPage = () => {
                                         {order.items?.map((item: any, idx: number) => (
                                             <Box key={idx} p={2} bg="white" borderRadius="md">
                                                 <Text fontWeight="bold">
-                                                    {item.quantity}x {item.item?.name_ar || 'صنف'}
+                                                    {item.quantity}x {locale === 'ar' ? item.item?.name_ar : (item.item?.name_en || item.item?.name_ar) || tr('صنف', 'Item')}
                                                 </Text>
                                             </Box>
                                         ))}
@@ -288,7 +280,7 @@ const KitchenDisplayPage = () => {
                                         size="lg"
                                         onClick={() => updateOrderStatus(order.id, 'ready')}
                                     >
-                                        الطلب جاهز ✓
+                                        {tr('الطلب جاهز', 'Mark ready')}
                                     </Button>
                                 </CardBody>
                             </Card>
@@ -296,10 +288,9 @@ const KitchenDisplayPage = () => {
                     })}
                 </VStack>
 
-                {/* عمود الطلبات الجاهزة */}
                 <VStack spacing={4} align="stretch">
                     <Badge colorScheme="green" fontSize="lg" p={2} textAlign="center" borderRadius="md">
-                        جاهز ({readyOrders.length})
+                        {tr('جاهز', 'Ready')} ({readyOrders.length})
                     </Badge>
                     {readyOrders.map((order) => (
                         <Card
@@ -315,7 +306,7 @@ const KitchenDisplayPage = () => {
                                         {order.order_number}
                                     </Text>
                                     <Badge colorScheme="green" fontSize="lg" p={2}>
-                                        ✓ جاهز
+                                        {tr('جاهز', 'Ready')} ✓
                                     </Badge>
                                 </HStack>
                             </CardHeader>
@@ -327,7 +318,7 @@ const KitchenDisplayPage = () => {
                                     size="lg"
                                     onClick={() => updateOrderStatus(order.id, 'completed')}
                                 >
-                                    تم التسليم
+                                    {tr('تم التسليم', 'Delivered')}
                                 </Button>
                             </CardBody>
                         </Card>

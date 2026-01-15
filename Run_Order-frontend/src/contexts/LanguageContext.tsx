@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 type Locale = 'ar' | 'en';
 type Direction = 'rtl' | 'ltr';
@@ -7,7 +7,9 @@ interface LanguageContextType {
     locale: Locale;
     direction: Direction;
     toggleLanguage: () => void;
+    setLocale: (nextLocale: Locale, options?: { persist?: boolean }) => void;
     t: (key: string) => string;
+    tr: (ar: string, en: string) => string;
 }
 
 const translations = {
@@ -15,10 +17,10 @@ const translations = {
         // Header
         'header.dashboard': 'لوحة التحكم',
         'header.pos': 'نقطة البيع',
-        'header.categories': 'الأقسام',
+        'header.categories': 'التصنيفات',
         'header.items': 'الأصناف',
         'header.tables': 'الطاولات',
-        'header.kitchen': 'المطبخ',
+        'header.kitchen': 'شاشة المطبخ',
         'header.askAi': 'اسأل الذكاء الاصطناعي',
 
         // Common
@@ -34,24 +36,24 @@ const translations = {
         'common.no': 'لا',
 
         // Categories
-        'categories.title': 'إدارة الأقسام',
-        'categories.addNew': 'إضافة قسم جديد',
-        'categories.nameAr': 'الاسم بالعربية',
-        'categories.nameEn': 'الاسم بالإنجليزية',
-        'categories.total': 'إجمالي الأقسام',
+        'categories.title': 'إدارة التصنيفات',
+        'categories.addNew': 'إضافة تصنيف جديد',
+        'categories.nameAr': 'الاسم (عربي)',
+        'categories.nameEn': 'الاسم (English)',
+        'categories.total': 'إجمالي التصنيفات',
 
         // Items
         'items.title': 'إدارة الأصناف',
         'items.addNew': 'إضافة صنف جديد',
         'items.price': 'السعر',
-        'items.sku': 'رمز المنتج',
-        'items.category': 'القسم',
+        'items.sku': 'SKU',
+        'items.category': 'التصنيف',
 
         // AI
-        'ai.title': 'RunBrain - المساعد الذكي',
-        'ai.placeholder': 'اسأل أي سؤال عن البيانات...',
+        'ai.title': 'RunBrain - مساعد الذكاء الاصطناعي',
+        'ai.placeholder': 'اسأل أي سؤال عن بياناتك...',
         'ai.quickPrompts': 'أسئلة سريعة',
-        'ai.analyzing': 'جاري التحليل...',
+        'ai.analyzing': 'جار التحليل...',
     },
     en: {
         // Header
@@ -100,29 +102,45 @@ const translations = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [locale, setLocale] = useState<Locale>(() => {
+    const [locale, setLocaleState] = useState<Locale>(() => {
         const saved = localStorage.getItem('locale');
         return (saved === 'en' || saved === 'ar') ? saved : 'ar';
     });
+    const persistLocaleRef = useRef(true);
 
     const direction: Direction = locale === 'ar' ? 'rtl' : 'ltr';
 
     useEffect(() => {
         document.documentElement.setAttribute('dir', direction);
         document.documentElement.setAttribute('lang', locale);
-        localStorage.setItem('locale', locale);
+        if (persistLocaleRef.current) {
+            localStorage.setItem('locale', locale);
+        }
+        persistLocaleRef.current = true;
     }, [locale, direction]);
 
+    const setLocale = (nextLocale: Locale, options?: { persist?: boolean }) => {
+        persistLocaleRef.current = options?.persist !== false;
+        setLocaleState(nextLocale);
+    };
+
     const toggleLanguage = () => {
-        setLocale((prev) => (prev === 'ar' ? 'en' : 'ar'));
+        setLocaleState((prev) => {
+            persistLocaleRef.current = true;
+            return prev === 'ar' ? 'en' : 'ar';
+        });
     };
 
     const t = (key: string): string => {
         return (translations[locale] as Record<string, string>)[key] || key;
     };
 
+    const tr = (ar: string, en: string): string => {
+        return locale === 'ar' ? ar : en;
+    };
+
     return (
-        <LanguageContext.Provider value={{ locale, direction, toggleLanguage, t }}>
+        <LanguageContext.Provider value={{ locale, direction, toggleLanguage, setLocale, t, tr }}>
             {children}
         </LanguageContext.Provider>
     );

@@ -27,8 +27,10 @@ import {
 import { FiPlus, FiEdit2, FiTrash2, FiCheck, FiX } from 'react-icons/fi';
 import axios from 'axios';
 import { API_BASE } from '../../config';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const TablesPage = () => {
+    const { tr } = useLanguage();
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [editingTable, setEditingTable] = useState<any>(null);
     const [tables, setTables] = useState<any[]>([]);
@@ -85,18 +87,18 @@ const TablesPage = () => {
         try {
             if (editingTable) {
                 await axios.patch(`${API_BASE}/tables/${editingTable.id}`, formData);
-                toast({ title: 'تم التحديث بنجاح', status: 'success', duration: 2000 });
+                toast({ title: tr('تم التحديث بنجاح', 'Updated successfully'), status: 'success', duration: 2000 });
             } else {
                 await axios.post(`${API_BASE}/tables`, formData);
-                toast({ title: 'تم الإضافة بنجاح', status: 'success', duration: 2000 });
+                toast({ title: tr('تمت الإضافة بنجاح', 'Added successfully'), status: 'success', duration: 2000 });
             }
             loadTables();
             onClose();
         } catch (error: any) {
             console.error('Error saving table:', error);
             toast({
-                title: 'حدث خطأ',
-                description: error.response?.data?.message || 'لم نتمكن من حفظ الطاولة',
+                title: tr('حدث خطأ', 'Error'),
+                description: error.response?.data?.message || tr('تعذر حفظ الطاولة', 'Failed to save table'),
                 status: 'error',
                 duration: 2000
             });
@@ -104,15 +106,15 @@ const TablesPage = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('هل أنت متأكد من حذف هذه الطاولة؟')) return;
+        if (!window.confirm(tr('هل أنت متأكد من حذف الطاولة؟', 'Are you sure you want to delete this table?'))) return;
 
         try {
             await axios.delete(`${API_BASE}/tables/${id}`);
-            toast({ title: 'تم الحذف بنجاح', status: 'success', duration: 2000 });
+            toast({ title: tr('تم الحذف بنجاح', 'Deleted successfully'), status: 'success', duration: 2000 });
             loadTables();
         } catch (error) {
             console.error('Error deleting table:', error);
-            toast({ title: 'خطأ', status: 'error', duration: 2000 });
+            toast({ title: tr('خطأ', 'Error'), status: 'error', duration: 2000 });
         }
     };
 
@@ -143,13 +145,13 @@ const TablesPage = () => {
     const getStatusText = (status: string) => {
         switch (status) {
             case 'available':
-                return 'متاحة';
+                return tr('متاحة', 'Available');
             case 'occupied':
-                return 'مشغولة';
+                return tr('مشغولة', 'Occupied');
             case 'reserved':
-                return 'محجوزة';
+                return tr('محجوزة', 'Reserved');
             case 'cleaning':
-                return 'تنظيف';
+                return tr('تنظيف', 'Cleaning');
             default:
                 return status;
         }
@@ -158,9 +160,9 @@ const TablesPage = () => {
     return (
         <Box p={6}>
             <HStack justify="space-between" mb={6}>
-                <Heading size="lg">إدارة الطاولات</Heading>
+                <Heading size="lg">{tr('إدارة الطاولات', 'Manage Tables')}</Heading>
                 <Button leftIcon={<FiPlus />} colorScheme="blue" onClick={() => handleOpenModal()}>
-                    إضافة طاولة
+                    {tr('إضافة طاولة', 'Add Table')}
                 </Button>
             </HStack>
 
@@ -177,12 +179,12 @@ const TablesPage = () => {
                                 </HStack>
 
                                 <Text color="gray.600">
-                                    <strong>السعة:</strong> {table.capacity} أشخاص
+                                    <strong>{tr('السعة', 'Capacity')}:</strong> {table.capacity} {tr('أشخاص', 'seats')}
                                 </Text>
 
                                 {table.location && (
                                     <Text color="gray.600" fontSize="sm">
-                                        <strong>الموقع:</strong> {table.location}
+                                        <strong>{tr('الموقع', 'Location')}:</strong> {table.location}
                                     </Text>
                                 )}
 
@@ -206,13 +208,13 @@ const TablesPage = () => {
                                         <FiX />
                                     </Button>
                                     <IconButton
-                                        aria-label="Edit"
+                                        aria-label={tr('تعديل', 'Edit')}
                                         icon={<FiEdit2 />}
                                         size="sm"
                                         onClick={() => handleOpenModal(table)}
                                     />
                                     <IconButton
-                                        aria-label="Delete"
+                                        aria-label={tr('حذف', 'Delete')}
                                         icon={<FiTrash2 />}
                                         size="sm"
                                         colorScheme="red"
@@ -230,12 +232,12 @@ const TablesPage = () => {
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>
-                        {editingTable ? 'تعديل طاولة' : 'إضافة طاولة جديدة'}
+                        {editingTable ? tr('تعديل طاولة', 'Edit Table') : tr('إضافة طاولة جديدة', 'Add New Table')}
                     </ModalHeader>
                     <ModalBody>
                         <VStack spacing={4}>
                             <FormControl isRequired>
-                                <FormLabel>رقم الطاولة</FormLabel>
+                                <FormLabel>{tr('رقم الطاولة', 'Table Number')}</FormLabel>
                                 <Input
                                     value={formData.table_number}
                                     onChange={(e) =>
@@ -246,7 +248,7 @@ const TablesPage = () => {
                             </FormControl>
 
                             <FormControl isRequired>
-                                <FormLabel>السعة</FormLabel>
+                                <FormLabel>{tr('السعة', 'Capacity')}</FormLabel>
                                 <Input
                                     type="number"
                                     value={formData.capacity}
@@ -258,33 +260,33 @@ const TablesPage = () => {
                             </FormControl>
 
                             <FormControl>
-                                <FormLabel>الحالة</FormLabel>
+                                <FormLabel>{tr('الحالة', 'Status')}</FormLabel>
                                 <Select
                                     value={formData.status}
                                     onChange={(e) =>
                                         setFormData({ ...formData, status: e.target.value })
                                     }
                                 >
-                                    <option value="available">متاحة</option>
-                                    <option value="occupied">مشغولة</option>
-                                    <option value="reserved">محجوزة</option>
-                                    <option value="cleaning">تنظيف</option>
+                                    <option value="available">{tr('متاحة', 'Available')}</option>
+                                    <option value="occupied">{tr('مشغولة', 'Occupied')}</option>
+                                    <option value="reserved">{tr('محجوزة', 'Reserved')}</option>
+                                    <option value="cleaning">{tr('تنظيف', 'Cleaning')}</option>
                                 </Select>
                             </FormControl>
 
                             <FormControl>
-                                <FormLabel>الموقع</FormLabel>
+                                <FormLabel>{tr('الموقع', 'Location')}</FormLabel>
                                 <Input
                                     value={formData.location}
                                     onChange={(e) =>
                                         setFormData({ ...formData, location: e.target.value })
                                     }
-                                    placeholder="الداخل / الخارج / الطابق الثاني"
+                                    placeholder={tr('داخلي / خارجي / تراس', 'Indoor / Outdoor / Terrace')}
                                 />
                             </FormControl>
 
                             <FormControl>
-                                <FormLabel>ملاحظات</FormLabel>
+                                <FormLabel>{tr('ملاحظات', 'Notes')}</FormLabel>
                                 <Input
                                     value={formData.notes}
                                     onChange={(e) =>
@@ -296,10 +298,10 @@ const TablesPage = () => {
                     </ModalBody>
                     <ModalFooter>
                         <Button variant="ghost" mr={3} onClick={onClose}>
-                            إلغاء
+                            {tr('إلغاء', 'Cancel')}
                         </Button>
                         <Button colorScheme="blue" onClick={handleSave}>
-                            حفظ
+                            {tr('حفظ', 'Save')}
                         </Button>
                     </ModalFooter>
                 </ModalContent>
@@ -309,4 +311,3 @@ const TablesPage = () => {
 };
 
 export default TablesPage;
-

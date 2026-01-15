@@ -44,10 +44,12 @@ import {
 } from 'recharts';
 import axios from 'axios';
 import { API_BASE } from '../../config';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const COLORS = ['#3182ce', '#38a169', '#dd6b20', '#d53f8c', '#805ad5'];
 
 const ReportsPage = () => {
+    const { tr, locale } = useLanguage();
     const [dailySales, setDailySales] = useState<any>(null);
     const [topItems, setTopItems] = useState<any[]>([]);
     const [lowStock, setLowStock] = useState<any[]>([]);
@@ -87,16 +89,16 @@ const ReportsPage = () => {
         }
     };
 
-    if (!dailySales) return <Box p={6}>جاري تحميل التقارير...</Box>;
+    if (!dailySales) return <Box p={6}>{tr('جار تحميل التقارير...', 'Loading reports...')}</Box>;
 
     const paymentMethodData = salesAnalytics?.byPaymentMethod ? Object.entries(salesAnalytics.byPaymentMethod).map(([method, data]: any) => ({
-        name: method === 'cash' ? 'نقدي' : method === 'card' ? 'بطاقة' : method,
+        name: method === 'cash' ? tr('نقدي', 'Cash') : method === 'card' ? tr('بطاقة', 'Card') : method,
         value: data.revenue,
         count: data.count,
     })) : [];
 
     const orderTypeData = salesAnalytics?.byOrderType ? Object.entries(salesAnalytics.byOrderType).map(([type, data]: any) => ({
-        name: type === 'dine_in' ? 'داخل المطعم' : type === 'takeout' ? 'تيك أواي' : 'توصيل',
+        name: type === 'dine_in' ? tr('محلي', 'Dine In') : type === 'takeout' ? tr('تيك أواي', 'Takeout') : tr('توصيل', 'Delivery'),
         value: data.revenue,
         count: data.count,
     })) : [];
@@ -104,33 +106,32 @@ const ReportsPage = () => {
     return (
         <Box p={6} bg="gray.50" minH="100vh">
             <HStack justify="space-between" mb={6}>
-                <Heading size="lg" color="gray.800">لوحة التقارير والتحليلات</Heading>
+                <Heading size="lg" color="gray.800">{tr('التقارير والتحليلات', 'Reports & Analytics')}</Heading>
                 <Select w="200px" value={period} onChange={(e) => setPeriod(e.target.value)}>
-                    <option value="today">اليوم</option>
-                    <option value="week">آخر 7 أيام</option>
-                    <option value="month">آخر 30 يوم</option>
+                    <option value="today">{tr('اليوم', 'Today')}</option>
+                    <option value="week">{tr('آخر 7 أيام', 'Last 7 days')}</option>
+                    <option value="month">{tr('آخر 30 يوم', 'Last 30 days')}</option>
                 </Select>
             </HStack>
 
             <Tabs variant="enclosed" colorScheme="blue">
                 <TabList>
-                    <Tab>المبيعات</Tab>
-                    <Tab>التحليلات</Tab>
-                    <Tab>المخزون</Tab>
+                    <Tab>{tr('المبيعات', 'Sales')}</Tab>
+                    <Tab>{tr('التحليلات', 'Analytics')}</Tab>
+                    <Tab>{tr('المخزون', 'Inventory')}</Tab>
                 </TabList>
 
                 <TabPanels>
-                    {/* Sales Tab */}
                     <TabPanel>
                         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
                             <Card bg="blue.500" color="white">
                                 <CardBody>
                                     <Stat>
-                                        <StatLabel color="white">مبيعات اليوم</StatLabel>
-                                        <StatNumber color="white">{Number(dailySales.totalRevenue).toFixed(2)} ر.س</StatNumber>
+                                        <StatLabel color="white">{tr('مبيعات اليوم', "Today's sales")}</StatLabel>
+                                        <StatNumber color="white">{Number(dailySales.totalRevenue).toFixed(2)} {tr('ج.م', 'EGP')}</StatNumber>
                                         <StatHelpText color="whiteAlpha.800">
                                             <StatArrow type="increase" />
-                                            {dailySales.totalOrders} طلبات
+                                            {dailySales.totalOrders} {tr('طلب', 'orders')}
                                         </StatHelpText>
                                     </Stat>
                                 </CardBody>
@@ -141,20 +142,20 @@ const ReportsPage = () => {
                                     <Card>
                                         <CardBody>
                                             <Stat>
-                                                <StatLabel>متوسط قيمة الطلب</StatLabel>
+                                                <StatLabel>{tr('متوسط قيمة الطلب', 'Average order value')}</StatLabel>
                                                 <StatNumber color="green.600">
-                                                    {salesAnalytics.summary.averageOrderValue.toFixed(2)} ر.س
+                                                    {salesAnalytics.summary.averageOrderValue.toFixed(2)} {tr('ج.م', 'EGP')}
                                                 </StatNumber>
-                                                <StatHelpText>{salesAnalytics.summary.totalOrders} طلب</StatHelpText>
+                                                <StatHelpText>{salesAnalytics.summary.totalOrders} {tr('طلب', 'orders')}</StatHelpText>
                                             </Stat>
                                         </CardBody>
                                     </Card>
                                     <Card>
                                         <CardBody>
                                             <Stat>
-                                                <StatLabel>تنبيهات المخزون</StatLabel>
+                                                <StatLabel>{tr('أصناف منخفضة المخزون', 'Low stock items')}</StatLabel>
                                                 <StatNumber color="red.500">{lowStock.length}</StatNumber>
-                                                <StatHelpText>مكونات منخفضة</StatHelpText>
+                                                <StatHelpText>{tr('تحتاج متابعة', 'Needs attention')}</StatHelpText>
                                             </Stat>
                                         </CardBody>
                                     </Card>
@@ -164,7 +165,7 @@ const ReportsPage = () => {
 
                         <Card h="400px" mb={6}>
                             <CardHeader>
-                                <Heading size="md">المبيعات بالساعة</Heading>
+                                <Heading size="md">{tr('مبيعات حسب الساعة', 'Sales by hour')}</Heading>
                             </CardHeader>
                             <CardBody>
                                 <ResponsiveContainer width="100%" height="100%">
@@ -174,7 +175,7 @@ const ReportsPage = () => {
                                         <YAxis />
                                         <Tooltip />
                                         <Legend />
-                                        <Line type="monotone" dataKey="amount" name="المبيعات (ر.س)" stroke="#3182ce" strokeWidth={2} />
+                                        <Line type="monotone" dataKey="amount" name={tr('المبيعات', 'Sales')} stroke="#3182ce" strokeWidth={2} />
                                     </LineChart>
                                 </ResponsiveContainer>
                             </CardBody>
@@ -182,7 +183,7 @@ const ReportsPage = () => {
 
                         <Card h="400px">
                             <CardHeader>
-                                <Heading size="md">أعلى 5 أصناف مبيعاً</Heading>
+                                <Heading size="md">{tr('أفضل 5 أصناف مبيعًا', 'Top 5 items')}</Heading>
                             </CardHeader>
                             <CardBody>
                                 <ResponsiveContainer width="100%" height="100%">
@@ -208,12 +209,11 @@ const ReportsPage = () => {
                         </Card>
                     </TabPanel>
 
-                    {/* Analytics Tab */}
                     <TabPanel>
                         <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
                             <Card h="350px">
                                 <CardHeader>
-                                    <Heading size="md">المبيعات حسب طريقة الدفع</Heading>
+                                    <Heading size="md">{tr('المبيعات حسب وسيلة الدفع', 'Sales by payment method')}</Heading>
                                 </CardHeader>
                                 <CardBody>
                                     <ResponsiveContainer width="100%" height="100%">
@@ -223,8 +223,8 @@ const ReportsPage = () => {
                                             <YAxis />
                                             <Tooltip />
                                             <Legend />
-                                            <Bar dataKey="value" name="الإيرادات (ر.س)" fill="#38a169" />
-                                            <Bar dataKey="count" name="عدد الطلبات" fill="#3182ce" />
+                                            <Bar dataKey="value" name={tr('الإيراد', 'Revenue')} fill="#38a169" />
+                                            <Bar dataKey="count" name={tr('عدد الطلبات', 'Orders')} fill="#3182ce" />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </CardBody>
@@ -232,7 +232,7 @@ const ReportsPage = () => {
 
                             <Card h="350px">
                                 <CardHeader>
-                                    <Heading size="md">المبيعات حسب نوع الطلب</Heading>
+                                    <Heading size="md">{tr('المبيعات حسب نوع الطلب', 'Sales by order type')}</Heading>
                                 </CardHeader>
                                 <CardBody>
                                     <ResponsiveContainer width="100%" height="100%">
@@ -258,33 +258,32 @@ const ReportsPage = () => {
                         </SimpleGrid>
                     </TabPanel>
 
-                    {/* Inventory Tab */}
                     <TabPanel>
                         <Card>
                             <CardHeader>
-                                <Heading size="md" color="red.500">تنبيهات المخزون المنخفض</Heading>
+                                <Heading size="md" color="red.500">{tr('الأصناف منخفضة المخزون', 'Low stock items')}</Heading>
                             </CardHeader>
                             <CardBody>
                                 {lowStock.length === 0 ? (
-                                    <Text textAlign="center" color="gray.500" py={8}>لا توجد تنبيهات للمخزون</Text>
+                                    <Text textAlign="center" color="gray.500" py={8}>{tr('لا توجد أصناف منخفضة المخزون', 'No low stock items')}</Text>
                                 ) : (
                                     <Table variant="simple">
                                         <Thead>
                                             <Tr>
-                                                <Th>المكون</Th>
-                                                <Th isNumeric>الكمية الحالية</Th>
-                                                <Th isNumeric>حد الطلب</Th>
-                                                <Th>الحالة</Th>
+                                                <Th>{tr('المكون', 'Ingredient')}</Th>
+                                                <Th isNumeric>{tr('الكمية', 'Quantity')}</Th>
+                                                <Th isNumeric>{tr('حد الطلب', 'Reorder point')}</Th>
+                                                <Th>{tr('الحالة', 'Status')}</Th>
                                             </Tr>
                                         </Thead>
                                         <Tbody>
                                             {lowStock.map((item) => (
                                                 <Tr key={item.id}>
-                                                    <Td fontWeight="bold">{item.name_ar}</Td>
+                                                    <Td fontWeight="bold">{locale === 'ar' ? item.name_ar : (item.name_en || item.name_ar)}</Td>
                                                     <Td isNumeric>{item.current_stock} {item.unit}</Td>
                                                     <Td isNumeric>{item.reorder_point}</Td>
                                                     <Td>
-                                                        <Badge colorScheme="red">منخفض جداً</Badge>
+                                                        <Badge colorScheme="red">{tr('منخفض', 'Low')}</Badge>
                                                     </Td>
                                                 </Tr>
                                             ))}

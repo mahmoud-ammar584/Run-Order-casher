@@ -30,13 +30,16 @@ import {
     Card,
     CardBody,
     useToast,
+    Text,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
 import axios from 'axios';
 import { API_BASE } from '../../config';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const ItemsPage = () => {
+    const { tr, locale } = useLanguage();
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [editingItem, setEditingItem] = useState<any>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -132,11 +135,10 @@ const ItemsPage = () => {
 
     const handleSave = async () => {
         try {
-            // التحقق من الحقول المطلوبة
             if (!formData.name_ar.trim()) {
                 toast({
-                    title: 'خطأ في البيانات',
-                    description: 'الاسم بالعربية مطلوب',
+                    title: tr('خطأ في الإدخال', 'Validation error'),
+                    description: tr('الاسم العربي مطلوب', 'Arabic name is required'),
                     status: 'error',
                     duration: 3000
                 });
@@ -145,8 +147,8 @@ const ItemsPage = () => {
 
             if (!formData.name_en.trim()) {
                 toast({
-                    title: 'خطأ في البيانات',
-                    description: 'الاسم بالإنجليزية مطلوب',
+                    title: tr('خطأ في الإدخال', 'Validation error'),
+                    description: tr('الاسم الإنجليزي مطلوب', 'English name is required'),
                     status: 'error',
                     duration: 3000
                 });
@@ -155,8 +157,8 @@ const ItemsPage = () => {
 
             if (!formData.category_id || formData.category_id === '') {
                 toast({
-                    title: 'خطأ في البيانات',
-                    description: 'يجب اختيار قسم',
+                    title: tr('خطأ في الإدخال', 'Validation error'),
+                    description: tr('اختر التصنيف', 'Please select a category'),
                     status: 'error',
                     duration: 3000
                 });
@@ -165,15 +167,14 @@ const ItemsPage = () => {
 
             if (!formData.sku.trim()) {
                 toast({
-                    title: 'خطأ في البيانات',
-                    description: 'رمز SKU مطلوب',
+                    title: tr('خطأ في الإدخال', 'Validation error'),
+                    description: tr('SKU مطلوب', 'SKU is required'),
                     status: 'error',
                     duration: 3000
                 });
                 return;
             }
 
-            // تحويل base_price إلى number
             const submitData: any = {
                 ...formData,
                 base_price: parseFloat(String(formData.base_price)) || 0,
@@ -185,18 +186,18 @@ const ItemsPage = () => {
 
             if (editingItem) {
                 await axios.patch(`${API_BASE}/items/${editingItem.id}`, submitData);
-                toast({ title: 'تم التحديث بنجاح', status: 'success', duration: 2000 });
+                toast({ title: tr('تم التحديث بنجاح', 'Updated successfully'), status: 'success', duration: 2000 });
             } else {
                 await axios.post(`${API_BASE}/items`, submitData);
-                toast({ title: 'تم الإضافة بنجاح', status: 'success', duration: 2000 });
+                toast({ title: tr('تمت الإضافة بنجاح', 'Added successfully'), status: 'success', duration: 2000 });
             }
             loadItems();
             onClose();
         } catch (error: any) {
             console.error('Error saving item:', error);
             toast({
-                title: 'حدث خطأ',
-                description: error.response?.data?.message || 'لم نتمكن من حفظ الصنف',
+                title: tr('حدث خطأ', 'Error'),
+                description: error.response?.data?.message || tr('تعذر حفظ الصنف', 'Failed to save item'),
                 status: 'error',
                 duration: 2000
             });
@@ -204,15 +205,15 @@ const ItemsPage = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('هل أنت متأكد من حذف هذا الصنف؟')) return;
+        if (!window.confirm(tr('هل أنت متأكد من حذف الصنف؟', 'Are you sure you want to delete this item?'))) return;
 
         try {
             await axios.delete(`${API_BASE}/items/${id}`);
-            toast({ title: 'تم الحذف بنجاح', status: 'success', duration: 2000 });
+            toast({ title: tr('تم الحذف بنجاح', 'Deleted successfully'), status: 'success', duration: 2000 });
             loadItems();
         } catch (error) {
             console.error('Error deleting item:', error);
-            toast({ title: 'خطأ', status: 'error', duration: 2000 });
+            toast({ title: tr('خطأ', 'Error'), status: 'error', duration: 2000 });
         }
     };
 
@@ -225,19 +226,27 @@ const ItemsPage = () => {
         }
     };
 
+    const getItemName = (item: any) => {
+        return locale === 'ar' ? item.name_ar : (item.name_en || item.name_ar);
+    };
+
+    const getCategoryName = (category: any) => {
+        if (!category) return '-';
+        return locale === 'ar' ? category.name_ar : (category.name_en || category.name_ar);
+    };
+
     const filteredItems = items.filter(
         (item) =>
-            item.name_ar.includes(searchQuery) ||
-            item.name_en?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.sku?.includes(searchQuery)
+            item.name_ar.includes(searchQuery)
+            || item.name_en?.toLowerCase().includes(searchQuery.toLowerCase())
+            || item.sku?.includes(searchQuery)
     );
 
     return (
         <Box p={6}>
             <VStack spacing={6} align="stretch">
-                {/* Header */}
                 <HStack justify="space-between">
-                    <Heading size="lg">إدارة الأصناف</Heading>
+                    <Heading size="lg">{tr('إدارة الأصناف', 'Manage Items')}</Heading>
                     <Button
                         leftIcon={<FiPlus />}
                         colorScheme="blue"
@@ -245,11 +254,10 @@ const ItemsPage = () => {
                         size="lg"
                         isDisabled={categories.length === 0}
                     >
-                        إضافة صنف جديد
+                        {tr('إضافة صنف جديد', 'Add New Item')}
                     </Button>
                 </HStack>
 
-                {/* البحث والفلترة */}
                 <Card>
                     <CardBody>
                         <HStack spacing={4}>
@@ -258,7 +266,7 @@ const ItemsPage = () => {
                                     <FiSearch />
                                 </InputLeftElement>
                                 <Input
-                                    placeholder="ابحث بالاسم أو SKU..."
+                                    placeholder={tr('ابحث بالاسم أو SKU...', 'Search by name or SKU...')}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
@@ -267,31 +275,29 @@ const ItemsPage = () => {
                     </CardBody>
                 </Card>
 
-                {/* رسالة تحميل */}
                 {categories.length === 0 && (
                     <Card>
                         <CardBody>
                             <Box textAlign="center" py={8}>
-                                <div>جاري تحميل البيانات...</div>
+                                <Text>{tr('جارٍ تحميل التصنيفات...', 'Loading categories...')}</Text>
                             </Box>
                         </CardBody>
                     </Card>
                 )}
 
-                {/* الجدول */}
                 <Card>
                     <CardBody p={0}>
                         <Table variant="simple">
                             <Thead bg="gray.50">
                                 <Tr>
-                                    <Th>الصورة</Th>
-                                    <Th>الاسم</Th>
-                                    <Th>القسم</Th>
+                                    <Th>{tr('الصورة', 'Image')}</Th>
+                                    <Th>{tr('الاسم', 'Name')}</Th>
+                                    <Th>{tr('التصنيف', 'Category')}</Th>
                                     <Th>SKU</Th>
-                                    <Th>السعر</Th>
-                                    <Th>الحالة</Th>
-                                    <Th>متاح</Th>
-                                    <Th>الإجراءات</Th>
+                                    <Th>{tr('السعر', 'Price')}</Th>
+                                    <Th>{tr('الحالة', 'Status')}</Th>
+                                    <Th>{tr('متاح للبيع', 'Available')}</Th>
+                                    <Th>{tr('إجراءات', 'Actions')}</Th>
                                 </Tr>
                             </Thead>
                             <Tbody>
@@ -310,24 +316,24 @@ const ItemsPage = () => {
                                         </Td>
                                         <Td>
                                             <VStack align="start" spacing={0}>
-                                                <Box fontWeight="bold">{item.name_ar}</Box>
+                                                <Box fontWeight="bold">{getItemName(item)}</Box>
                                                 <Box fontSize="sm" color="gray.600">
-                                                    {item.name_en}
+                                                    {locale === 'ar' ? item.name_en : item.name_ar}
                                                 </Box>
                                             </VStack>
                                         </Td>
-                                        <Td>{item.category?.name_ar || '-'}</Td>
+                                        <Td>{getCategoryName(item.category)}</Td>
                                         <Td>
                                             <Badge colorScheme="purple">{item.sku}</Badge>
                                         </Td>
                                         <Td>
                                             <Badge colorScheme="green" fontSize="md">
-                                                {item.base_price} ج.م
+                                                {item.base_price} {tr('ج.م', 'EGP')}
                                             </Badge>
                                         </Td>
                                         <Td>
                                             <Badge colorScheme={item.is_active ? 'green' : 'gray'}>
-                                                {item.is_active ? 'نشط' : 'غير نشط'}
+                                                {item.is_active ? tr('نشط', 'Active') : tr('غير نشط', 'Inactive')}
                                             </Badge>
                                         </Td>
                                         <Td>
@@ -345,7 +351,7 @@ const ItemsPage = () => {
                                                     colorScheme="blue"
                                                     variant="ghost"
                                                     onClick={() => handleOpenModal(item)}
-                                                    aria-label="Edit"
+                                                    aria-label={tr('تعديل', 'Edit')}
                                                 />
                                                 <IconButton
                                                     icon={<FiTrash2 />}
@@ -353,7 +359,7 @@ const ItemsPage = () => {
                                                     colorScheme="red"
                                                     variant="ghost"
                                                     onClick={() => handleDelete(item.id)}
-                                                    aria-label="Delete"
+                                                    aria-label={tr('حذف', 'Delete')}
                                                 />
                                             </HStack>
                                         </Td>
@@ -365,28 +371,27 @@ const ItemsPage = () => {
                 </Card>
             </VStack>
 
-            {/* نافذة الإضافة/التعديل */}
             <Modal isOpen={isOpen} onClose={onClose} size="xl">
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>
-                        {editingItem ? 'تعديل صنف' : 'إضافة صنف جديد'}
+                        {editingItem ? tr('تعديل صنف', 'Edit Item') : tr('إضافة صنف جديد', 'Add New Item')}
                     </ModalHeader>
                     <ModalBody>
                         <VStack spacing={4}>
                             <HStack w="full" spacing={4}>
                                 <FormControl isRequired>
-                                    <FormLabel>الاسم بالعربية</FormLabel>
+                                    <FormLabel>{tr('الاسم (عربي)', 'Name (Arabic)')}</FormLabel>
                                     <Input
                                         value={formData.name_ar}
                                         onChange={(e) =>
                                             setFormData({ ...formData, name_ar: e.target.value })
                                         }
-                                        placeholder="مثال: برجر كلاسيك"
+                                        placeholder={tr('مثال: برجر كلاسيك', 'Example: Classic Burger')}
                                     />
                                 </FormControl>
                                 <FormControl isRequired>
-                                    <FormLabel>الاسم بالإنجليزية</FormLabel>
+                                    <FormLabel>{tr('الاسم (English)', 'Name (English)')}</FormLabel>
                                     <Input
                                         value={formData.name_en}
                                         onChange={(e) =>
@@ -398,22 +403,22 @@ const ItemsPage = () => {
                             </HStack>
 
                             <FormControl isRequired>
-                                <FormLabel>القسم</FormLabel>
+                                <FormLabel>{tr('التصنيف', 'Category')}</FormLabel>
                                 <Select
                                     value={formData.category_id}
                                     onChange={(e) =>
                                         setFormData({ ...formData, category_id: e.target.value })
                                     }
                                 >
-                                    {categories.map(cat => (
-                                        <option key={cat.id} value={cat.id}>{cat.name_ar}</option>
+                                    {categories.map((cat) => (
+                                        <option key={cat.id} value={cat.id}>{getCategoryName(cat)}</option>
                                     ))}
                                 </Select>
                             </FormControl>
 
                             <HStack w="full" spacing={4}>
                                 <FormControl isRequired>
-                                    <FormLabel>السعر (ج.م)</FormLabel>
+                                    <FormLabel>{tr('السعر (ج.م)', 'Price (EGP)')}</FormLabel>
                                     <Input
                                         type="number"
                                         value={formData.base_price}
@@ -436,7 +441,7 @@ const ItemsPage = () => {
                             </HStack>
 
                             <FormControl>
-                                <FormLabel>الباركود</FormLabel>
+                                <FormLabel>{tr('الباركود', 'Barcode')}</FormLabel>
                                 <Input
                                     value={formData.barcode}
                                     onChange={(e) =>
@@ -447,7 +452,7 @@ const ItemsPage = () => {
                             </FormControl>
 
                             <FormControl>
-                                <FormLabel>رابط الصورة</FormLabel>
+                                <FormLabel>{tr('رابط الصورة', 'Image URL')}</FormLabel>
                                 <Input
                                     value={formData.image_url}
                                     onChange={(e) =>
@@ -459,7 +464,7 @@ const ItemsPage = () => {
 
                             <HStack w="full" spacing={4}>
                                 <FormControl display="flex" alignItems="center">
-                                    <FormLabel mb="0">نشط</FormLabel>
+                                    <FormLabel mb="0">{tr('نشط', 'Active')}</FormLabel>
                                     <Switch
                                         isChecked={formData.is_active}
                                         onChange={(e) =>
@@ -469,7 +474,7 @@ const ItemsPage = () => {
                                     />
                                 </FormControl>
                                 <FormControl display="flex" alignItems="center">
-                                    <FormLabel mb="0">متاح للبيع</FormLabel>
+                                    <FormLabel mb="0">{tr('متاح للبيع', 'Available for sale')}</FormLabel>
                                     <Switch
                                         isChecked={formData.is_available}
                                         onChange={(e) =>
@@ -486,10 +491,10 @@ const ItemsPage = () => {
                     </ModalBody>
                     <ModalFooter>
                         <Button variant="ghost" mr={3} onClick={onClose}>
-                            إلغاء
+                            {tr('إلغاء', 'Cancel')}
                         </Button>
                         <Button colorScheme="blue" onClick={handleSave}>
-                            {editingItem ? 'حفظ التعديلات' : 'إضافة'}
+                            {editingItem ? tr('حفظ التعديلات', 'Save changes') : tr('إضافة', 'Add')}
                         </Button>
                     </ModalFooter>
                 </ModalContent>

@@ -16,26 +16,26 @@ import GlobalHeader from '../components/GlobalHeader';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const HomePage = () => {
-    const { locale } = useLanguage();
+    const { tr } = useLanguage();
 
     const menuItems = [
         {
-            title: locale === 'ar' ? 'لوحة التحكم' : 'Dashboard',
-            description: locale === 'ar' ? 'إدارة الأقسام والأصناف' : 'Manage Categories & Items',
+            title: tr('لوحة التحكم', 'Dashboard'),
+            description: tr('إدارة التصنيفات والأصناف والمخزون', 'Manage categories, items, and inventory'),
             icon: FiGrid,
             path: '/dashboard/categories',
             color: 'blue',
         },
         {
-            title: locale === 'ar' ? 'نقطة البيع' : 'POS',
-            description: locale === 'ar' ? 'نظام البيع والطلبات' : 'Sales & Orders System',
+            title: tr('نقطة البيع', 'POS'),
+            description: tr('نظام البيع والطلبات بشكل مباشر', 'Sales and order system'),
             icon: FiShoppingBag,
             path: '/pos',
             color: 'green',
         },
         {
-            title: locale === 'ar' ? 'شاشة المطبخ' : 'Kitchen Display',
-            description: locale === 'ar' ? 'عرض الطلبات للمطبخ' : 'Display Orders for Kitchen',
+            title: tr('شاشة المطبخ', 'Kitchen Display'),
+            description: tr('عرض الطلبات للمطبخ لحظيًا', 'Live order feed for the kitchen'),
             icon: FiMonitor,
             path: '/kds',
             color: 'orange',
@@ -45,10 +45,14 @@ const HomePage = () => {
     return (
         <>
             <GlobalHeader />
-            <Box minH="100vh" bgGradient="linear(to-br, gray.50, gray.100)" _dark={{ bgGradient: 'linear(to-br, gray.900, gray.800)' }} py={20}>
+            <Box
+                minH="100vh"
+                bgGradient="linear(to-br, gray.50, gray.100)"
+                _dark={{ bgGradient: 'linear(to-br, gray.900, gray.800)' }}
+                py={20}
+            >
                 <Container maxW="6xl">
                     <VStack spacing={12} align="stretch">
-                        {/* Header */}
                         <VStack spacing={4} textAlign="center">
                             <Box
                                 fontSize={{ base: '5xl', md: '7xl' }}
@@ -57,7 +61,7 @@ const HomePage = () => {
                                 bgClip="text"
                                 mb={4}
                             >
-                                ⚡ Run Order
+                                Run Order
                             </Box>
                             <Heading
                                 fontSize={{ base: '2xl', md: '3xl' }}
@@ -65,17 +69,16 @@ const HomePage = () => {
                                 color="gray.700"
                                 _dark={{ color: 'gray.200' }}
                             >
-                                {locale === 'ar' ? 'نظام إدارة المطاعم الذكي' : 'Smart Restaurant Management System'}
+                                {tr('نظام إدارة المطاعم الذكي', 'Smart Restaurant Management System')}
                             </Heading>
                             <Text fontSize="lg" color="gray.600" _dark={{ color: 'gray.400' }} maxW="2xl">
-                                {locale === 'ar'
-                                    ? 'إدارة شاملة للطلبات، القوائم، المطبخ والطاولات - حلول احترافية لمطعمك'
-                                    : 'Comprehensive management for orders, menus, kitchen and tables - Professional solutions for your restaurant'
-                                }
+                                {tr(
+                                    'حل احترافي لإدارة الطلبات والقائمة والمطبخ والطاولات بأداء سريع وتجربة واضحة.',
+                                    'Professional management for orders, menus, kitchen, and tables with fast performance.',
+                                )}
                             </Text>
                         </VStack>
 
-                        {/* Menu Cards */}
                         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
                             {menuItems.map((item) => (
                                 <Card
@@ -108,12 +111,8 @@ const HomePage = () => {
                                                     {item.description}
                                                 </Text>
                                             </VStack>
-                                            <Button
-                                                colorScheme={item.color}
-                                                size="sm"
-                                                w="full"
-                                            >
-                                                {locale === 'ar' ? 'فتح' : 'Open'}
+                                            <Button colorScheme={item.color} size="sm" w="full">
+                                                {tr('فتح', 'Open')}
                                             </Button>
                                         </VStack>
                                     </CardBody>
@@ -121,7 +120,6 @@ const HomePage = () => {
                             ))}
                         </SimpleGrid>
 
-                        {/* Footer Info */}
                         <Box
                             mt={8}
                             p={6}
@@ -132,7 +130,10 @@ const HomePage = () => {
                             textAlign="center"
                         >
                             <Text color="gray.600" _dark={{ color: 'gray.400' }} fontSize="sm">
-                                ⚡ Run Order - {locale === 'ar' ? 'نظام إدارة المطاعم الاحترافي' : 'Professional Restaurant Management System'} © 2024
+                                {tr(
+                                    'Run Order - نظام إدارة المطاعم الاحترافي © 2024',
+                                    'Run Order - Professional Restaurant Management System © 2024',
+                                )}
                             </Text>
                         </Box>
                     </VStack>

@@ -25,6 +25,7 @@ import { useState, useRef, useEffect } from 'react';
 import { FiSend, FiTrendingDown, FiPackage, FiDollarSign, FiUsers } from 'react-icons/fi';
 import axios from 'axios';
 import { API_BASE } from '../config';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -40,13 +41,14 @@ interface AIAssistantProps {
 }
 
 const quickPrompts = [
-    { icon: FiTrendingDown, text: 'لماذا المبيعات منخفضة اليوم؟', en: 'Why are sales down today?' },
-    { icon: FiPackage, text: 'ما الأصناف الأكثر مبيعاً؟', en: 'What are top selling items?' },
-    { icon: FiDollarSign, text: 'إجمالي المبيعات هذا الشهر؟', en: 'Total sales this month?' },
-    { icon: FiUsers, text: 'عدد الطلبات النشطة الآن؟', en: 'Active orders count?' },
+    { icon: FiTrendingDown, ar: 'ليه المبيعات قليلة النهاردة؟', en: 'Why are sales down today?' },
+    { icon: FiPackage, ar: 'إيه أكثر الأصناف مبيعًا؟', en: 'What are top selling items?' },
+    { icon: FiDollarSign, ar: 'إجمالي المبيعات هذا الشهر؟', en: 'Total sales this month?' },
+    { icon: FiUsers, ar: 'عدد الطلبات النشطة؟', en: 'Active orders count?' },
 ];
 
 const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
+    const { tr, locale } = useLanguage();
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -101,15 +103,18 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
         } catch (error: any) {
             console.error('AI Query Error:', error);
             toast({
-                title: 'خطأ',
-                description: error.response?.data?.message || 'فشل الاتصال بالمساعد الذكي',
+                title: tr('خطأ', 'Error'),
+                description: error.response?.data?.message || tr('تعذر معالجة الاستعلام الذكي', 'Failed to process AI query'),
                 status: 'error',
                 duration: 3000,
             });
 
             const errorMessage: Message = {
                 role: 'assistant',
-                content: 'عذراً، حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.',
+                content: tr(
+                    'عذرًا، حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.',
+                    'Sorry, something went wrong while processing your request. Please try again.',
+                ),
                 timestamp: new Date().toISOString(),
             };
             setMessages((prev) => [...prev, errorMessage]);
@@ -123,7 +128,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
     };
 
     return (
-        <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="md">
+        <Drawer isOpen={isOpen} placement={locale === 'ar' ? 'right' : 'left'} onClose={onClose} size="md">
             <DrawerOverlay />
             <DrawerContent
                 bgGradient="linear(to-br, purple.50, pink.50)"
@@ -146,14 +151,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
                             justifyContent="center"
                             fontSize="20px"
                         >
-                            🧠
+                            ✨
                         </Box>
                         <VStack align="start" spacing={0}>
                             <Text fontSize="lg" fontWeight="bold">
                                 RunBrain
                             </Text>
                             <Text fontSize="xs" opacity={0.9}>
-                                المساعد الذكي لنقاط البيع
+                                {tr('مساعد ذكي لفهم بيانات المبيعات', 'Smart assistant for sales insights')}
                             </Text>
                         </VStack>
                     </HStack>
@@ -161,7 +166,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
 
                 <DrawerBody p={4}>
                     <VStack spacing={4} align="stretch" h="full">
-                        {/* Quick Insights */}
                         {insights && (
                             <SimpleGrid columns={2} spacing={3}>
                                 <Stat
@@ -171,7 +175,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
                                     borderRadius="lg"
                                     boxShadow="sm"
                                 >
-                                    <StatLabel fontSize="xs">الأقسام</StatLabel>
+                                    <StatLabel fontSize="xs">{tr('التصنيفات', 'Categories')}</StatLabel>
                                     <StatNumber color="purple.600">{insights.totalCategories}</StatNumber>
                                 </Stat>
                                 <Stat
@@ -181,7 +185,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
                                     borderRadius="lg"
                                     boxShadow="sm"
                                 >
-                                    <StatLabel fontSize="xs">الأصناف</StatLabel>
+                                    <StatLabel fontSize="xs">{tr('الأصناف', 'Items')}</StatLabel>
                                     <StatNumber color="pink.600">{insights.totalItems}</StatNumber>
                                 </Stat>
                                 <Stat
@@ -191,7 +195,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
                                     borderRadius="lg"
                                     boxShadow="sm"
                                 >
-                                    <StatLabel fontSize="xs">الطلبات اليوم</StatLabel>
+                                    <StatLabel fontSize="xs">{tr('طلبات اليوم', "Today's orders")}</StatLabel>
                                     <StatNumber color="blue.600">{insights.todayOrders}</StatNumber>
                                 </Stat>
                                 <Stat
@@ -201,17 +205,16 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
                                     borderRadius="lg"
                                     boxShadow="sm"
                                 >
-                                    <StatLabel fontSize="xs">طاولات متاحة</StatLabel>
+                                    <StatLabel fontSize="xs">{tr('الطاولات المتاحة', 'Available tables')}</StatLabel>
                                     <StatNumber color="green.600">{insights.availableTables}</StatNumber>
                                 </Stat>
                             </SimpleGrid>
                         )}
 
-                        {/* Quick Prompts */}
                         {messages.length === 0 && (
                             <VStack align="stretch" spacing={2}>
                                 <Text fontSize="sm" fontWeight="bold" color="gray.600">
-                                    أسئلة سريعة:
+                                    {tr('أسئلة سريعة:', 'Quick prompts:')}
                                 </Text>
                                 {quickPrompts.map((prompt, index) => (
                                     <Button
@@ -220,17 +223,16 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
                                         variant="outline"
                                         colorScheme="purple"
                                         leftIcon={<prompt.icon />}
-                                        onClick={() => handleQuickPrompt(prompt.text)}
-                                        textAlign="right"
+                                        onClick={() => handleQuickPrompt(locale === 'ar' ? prompt.ar : prompt.en)}
+                                        textAlign={locale === 'ar' ? 'right' : 'left'}
                                         justifyContent="flex-start"
                                     >
-                                        {prompt.text}
+                                        {locale === 'ar' ? prompt.ar : prompt.en}
                                     </Button>
                                 ))}
                             </VStack>
                         )}
 
-                        {/* Messages */}
                         <VStack
                             flex={1}
                             spacing={3}
@@ -256,7 +258,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
                                             size="sm"
                                             bg="gradient"
                                             bgGradient="linear(to-br, purple.500, pink.500)"
-                                            icon={<Text>🧠</Text>}
+                                            icon={<Text>✨</Text>}
                                         />
                                     )}
                                     <VStack
@@ -280,12 +282,12 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
                                         </Box>
                                         {message.sql && (
                                             <Badge colorScheme="purple" fontSize="xs">
-                                                SQL Query
+                                                {tr('استعلام SQL', 'SQL Query')}
                                             </Badge>
                                         )}
                                     </VStack>
                                     {message.role === 'user' && (
-                                        <Avatar size="sm" bg="blue.500" name="User" />
+                                        <Avatar size="sm" bg="blue.500" name={tr('مستخدم', 'User')} />
                                     )}
                                 </HStack>
                             ))}
@@ -294,13 +296,13 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
                                     <Avatar
                                         size="sm"
                                         bgGradient="linear(to-br, purple.500, pink.500)"
-                                        icon={<Text>🧠</Text>}
+                                        icon={<Text>✨</Text>}
                                     />
                                     <Box bg="white" _dark={{ bg: 'gray.700' }} px={4} py={2} borderRadius="lg">
                                         <HStack spacing={2}>
                                             <Spinner size="sm" color="purple.500" />
                                             <Text fontSize="sm" color="gray.600" _dark={{ color: 'gray.300' }}>
-                                                جاري التحليل...
+                                                {tr('جار التحليل...', 'Analyzing...')}
                                             </Text>
                                         </HStack>
                                     </Box>
@@ -309,13 +311,12 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
                             <div ref={messagesEndRef} />
                         </VStack>
 
-                        {/* Input */}
                         <HStack spacing={2}>
                             <Input
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && sendMessage(inputValue)}
-                                placeholder="اسأل أي سؤال عن البيانات..."
+                                placeholder={tr('اكتب سؤالك هنا...', 'Type your question here...')}
                                 bg="white"
                                 _dark={{ bg: 'gray.800' }}
                                 borderColor="purple.200"
@@ -327,7 +328,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose }) => {
                                 colorScheme="purple"
                                 onClick={() => sendMessage(inputValue)}
                                 isLoading={isLoading}
-                                aria-label="Send message"
+                                aria-label={tr('إرسال', 'Send')}
                             />
                         </HStack>
                     </VStack>

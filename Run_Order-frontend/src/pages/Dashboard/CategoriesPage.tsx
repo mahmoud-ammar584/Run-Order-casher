@@ -29,8 +29,10 @@ import {
 import { FiPlus, FiGrid, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import axios from 'axios';
 import { API_BASE } from '../../config';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const CategoriesPage = () => {
+    const { tr, locale } = useLanguage();
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [editingCategory, setEditingCategory] = useState<any>(null);
     const [categories, setCategories] = useState<any[]>([]);
@@ -87,31 +89,31 @@ const CategoriesPage = () => {
         try {
             if (editingCategory) {
                 await axios.patch(`${API_BASE}/categories/${editingCategory.id}`, formData);
-                toast({ title: 'تم التحديث بنجاح', status: 'success', duration: 2000 });
+                toast({ title: tr('تم التحديث بنجاح', 'Updated successfully'), status: 'success', duration: 2000 });
             } else {
                 await axios.post(`${API_BASE}/categories`, formData);
-                toast({ title: 'تم الإضافة بنجاح', status: 'success', duration: 2000 });
+                toast({ title: tr('تمت الإضافة بنجاح', 'Added successfully'), status: 'success', duration: 2000 });
             }
             loadCategories();
             onClose();
         } catch (error) {
             console.error('Error saving category:', error);
-            toast({ title: 'حدث خطأ', status: 'error', duration: 2000 });
+            toast({ title: tr('حدث خطأ', 'An error occurred'), status: 'error', duration: 2000 });
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('هل أنت متأكد من حذف هذا القسم؟')) return;
+        if (!window.confirm(tr('هل أنت متأكد من حذف التصنيف؟', 'Are you sure you want to delete this category?'))) return;
 
         try {
             await axios.delete(`${API_BASE}/categories/${id}`);
-            toast({ title: 'تم الحذف بنجاح', status: 'success', duration: 2000 });
+            toast({ title: tr('تم الحذف بنجاح', 'Deleted successfully'), status: 'success', duration: 2000 });
             loadCategories();
         } catch (error: any) {
             console.error('Error deleting category:', error);
             toast({
-                title: 'خطأ',
-                description: error.response?.data?.message || 'لم نتمكن من حذف القسم',
+                title: tr('خطأ', 'Error'),
+                description: error.response?.data?.message || tr('تعذر حذف التصنيف.', 'Failed to delete category.'),
                 status: 'error',
                 duration: 3000
             });
@@ -129,15 +131,22 @@ const CategoriesPage = () => {
         }
     };
 
+    const getCategoryTitle = (category: any) => {
+        return locale === 'ar' ? category.name_ar : category.name_en;
+    };
+
+    const getCategorySubtitle = (category: any) => {
+        return locale === 'ar' ? category.name_en : category.name_ar;
+    };
+
     return (
         <Box p={6}>
             <VStack spacing={6} align="stretch">
-                {/* Header */}
                 <HStack justify="space-between">
                     <VStack align="start" spacing={1}>
-                        <Heading size="lg">إدارة الأقسام</Heading>
+                        <Heading size="lg">{tr('إدارة التصنيفات', 'Manage Categories')}</Heading>
                         <Text color="gray.600">
-                            إدارة الأقسام الرئيسية للمنيو
+                            {tr('تنظيم التصنيفات الرئيسية وفرزها بسهولة.', 'Organize and manage your main categories.')}
                         </Text>
                     </VStack>
                     <Button
@@ -146,18 +155,17 @@ const CategoriesPage = () => {
                         size="lg"
                         onClick={() => handleOpenModal()}
                     >
-                        إضافة قسم جديد
+                        {tr('إضافة تصنيف جديد', 'Add New Category')}
                     </Button>
                 </HStack>
 
-                {/* إحصائيات سريعة */}
                 <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
                     <Card>
                         <CardBody>
                             <HStack justify="space-between">
                                 <VStack align="start" spacing={1}>
                                     <Text fontSize="sm" color="gray.600">
-                                        إجمالي الأقسام
+                                        {tr('إجمالي التصنيفات', 'Total Categories')}
                                     </Text>
                                     <Text fontSize="3xl" fontWeight="bold" color="blue.600">
                                         {categories.length}
@@ -175,7 +183,7 @@ const CategoriesPage = () => {
                             <HStack justify="space-between">
                                 <VStack align="start" spacing={1}>
                                     <Text fontSize="sm" color="gray.600">
-                                        أقسام نشطة
+                                        {tr('نشطة', 'Active')}
                                     </Text>
                                     <Text fontSize="3xl" fontWeight="bold" color="green.600">
                                         {categories.filter((c) => c.is_active).length}
@@ -193,7 +201,7 @@ const CategoriesPage = () => {
                             <HStack justify="space-between">
                                 <VStack align="start" spacing={1}>
                                     <Text fontSize="sm" color="gray.600">
-                                        أقسام غير نشطة
+                                        {tr('غير نشطة', 'Inactive')}
                                     </Text>
                                     <Text fontSize="3xl" fontWeight="bold" color="gray.600">
                                         {categories.filter((c) => !c.is_active).length}
@@ -207,7 +215,6 @@ const CategoriesPage = () => {
                     </Card>
                 </SimpleGrid>
 
-                {/* بطاقات الأقسام */}
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
                     {categories.map((category) => (
                         <Card
@@ -231,10 +238,10 @@ const CategoriesPage = () => {
                                     <HStack justify="space-between">
                                         <VStack align="start" spacing={0}>
                                             <Text fontSize="xl" fontWeight="bold">
-                                                {category.name_ar}
+                                                {getCategoryTitle(category)}
                                             </Text>
                                             <Text fontSize="sm" color="gray.600">
-                                                {category.name_en}
+                                                {getCategorySubtitle(category)}
                                             </Text>
                                         </VStack>
                                         <Badge
@@ -243,7 +250,7 @@ const CategoriesPage = () => {
                                             px={2}
                                             py={1}
                                         >
-                                            {category.is_active ? 'نشط' : 'غير نشط'}
+                                            {category.is_active ? tr('نشط', 'Active') : tr('غير نشط', 'Inactive')}
                                         </Badge>
                                     </HStack>
 
@@ -267,14 +274,14 @@ const CategoriesPage = () => {
                                                 colorScheme="blue"
                                                 variant="outline"
                                                 onClick={() => handleOpenModal(category)}
-                                                aria-label="Edit"
+                                                aria-label={tr('تعديل', 'Edit')}
                                             />
                                             <IconButton
                                                 icon={<FiTrash2 />}
                                                 colorScheme="red"
                                                 variant="outline"
                                                 onClick={() => handleDelete(category.id)}
-                                                aria-label="Delete"
+                                                aria-label={tr('حذف', 'Delete')}
                                             />
                                         </HStack>
                                     </HStack>
@@ -285,52 +292,51 @@ const CategoriesPage = () => {
                 </SimpleGrid>
             </VStack>
 
-            {/* نافذة الإضافة/التعديل */}
             <Modal isOpen={isOpen} onClose={onClose} size="xl">
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>
-                        {editingCategory ? 'تعديل قسم' : 'إضافة قسم جديد'}
+                        {editingCategory ? tr('تعديل تصنيف', 'Edit Category') : tr('إضافة تصنيف جديد', 'Add New Category')}
                     </ModalHeader>
                     <ModalBody>
                         <VStack spacing={4}>
                             <HStack w="full" spacing={4}>
                                 <FormControl isRequired>
-                                    <FormLabel>الاسم بالعربية</FormLabel>
+                                    <FormLabel>{tr('الاسم (عربي)', 'Name (Arabic)')}</FormLabel>
                                     <Input
                                         value={formData.name_ar}
                                         onChange={(e) =>
                                             setFormData({ ...formData, name_ar: e.target.value })
                                         }
-                                        placeholder="مثال: البرجر"
+                                        placeholder={tr('مثال: مشروبات', 'Example: Beverages')}
                                     />
                                 </FormControl>
                                 <FormControl isRequired>
-                                    <FormLabel>الاسم بالإنجليزية</FormLabel>
+                                    <FormLabel>{tr('الاسم (English)', 'Name (English)')}</FormLabel>
                                     <Input
                                         value={formData.name_en}
                                         onChange={(e) =>
                                             setFormData({ ...formData, name_en: e.target.value })
                                         }
-                                        placeholder="Example: Burgers"
+                                        placeholder="Example: Beverages"
                                     />
                                 </FormControl>
                             </HStack>
 
                             <FormControl>
-                                <FormLabel>الوصف بالعربية</FormLabel>
+                                <FormLabel>{tr('الوصف (عربي)', 'Description (Arabic)')}</FormLabel>
                                 <Textarea
                                     value={formData.description_ar}
                                     onChange={(e) =>
                                         setFormData({ ...formData, description_ar: e.target.value })
                                     }
-                                    placeholder="وصف مختصر للقسم..."
+                                    placeholder={tr('وصف مختصر للتصنيف...', 'Short description for the category...')}
                                     rows={3}
                                 />
                             </FormControl>
 
                             <FormControl>
-                                <FormLabel>رابط الصورة</FormLabel>
+                                <FormLabel>{tr('رابط الصورة', 'Image URL')}</FormLabel>
                                 <Input
                                     value={formData.image_url}
                                     onChange={(e) =>
@@ -344,7 +350,7 @@ const CategoriesPage = () => {
                                 <Box w="full">
                                     <Image
                                         src={formData.image_url}
-                                        alt="Preview"
+                                        alt={tr('معاينة', 'Preview')}
                                         h="150px"
                                         w="full"
                                         objectFit="cover"
@@ -355,7 +361,7 @@ const CategoriesPage = () => {
 
                             <HStack w="full" spacing={4}>
                                 <FormControl>
-                                    <FormLabel>ترتيب العرض</FormLabel>
+                                    <FormLabel>{tr('ترتيب العرض', 'Display order')}</FormLabel>
                                     <Input
                                         type="number"
                                         value={formData.display_order}
@@ -368,7 +374,7 @@ const CategoriesPage = () => {
                                     />
                                 </FormControl>
                                 <FormControl display="flex" alignItems="center" pt={8}>
-                                    <FormLabel mb="0">نشط</FormLabel>
+                                    <FormLabel mb="0">{tr('نشط', 'Active')}</FormLabel>
                                     <Switch
                                         isChecked={formData.is_active}
                                         onChange={(e) =>
@@ -382,10 +388,10 @@ const CategoriesPage = () => {
                     </ModalBody>
                     <ModalFooter>
                         <Button variant="ghost" mr={3} onClick={onClose}>
-                            إلغاء
+                            {tr('إلغاء', 'Cancel')}
                         </Button>
                         <Button colorScheme="blue" onClick={handleSave}>
-                            {editingCategory ? 'حفظ التعديلات' : 'إضافة'}
+                            {editingCategory ? tr('حفظ التعديلات', 'Save changes') : tr('إضافة', 'Add')}
                         </Button>
                     </ModalFooter>
                 </ModalContent>

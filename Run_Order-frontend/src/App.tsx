@@ -3,6 +3,7 @@ import POSPage from './pages/POS/POSPage';
 import CategoriesPage from './pages/Dashboard/CategoriesPage';
 import ItemsPage from './pages/Dashboard/ItemsPage';
 import TablesPage from './pages/Dashboard/TablesPage';
+import SettingsPage from './pages/Dashboard/SettingsPage';
 import InventoryPage from './pages/Inventory/InventoryPage';
 import RecipesPage from './pages/Recipes/RecipesPage';
 import ReportsPage from './pages/Reports/ReportsPage';
@@ -39,6 +40,7 @@ function App() {
             <Route path="reports" element={<ReportsPage />} />
             <Route path="accounting" element={<AccountingPage />} />
             <Route path="tables" element={<TablesPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
       </Router>

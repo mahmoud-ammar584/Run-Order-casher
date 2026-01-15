@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, FormControl, FormLabel, Input, VStack, Heading, useToast, Text, Link } from '@chakra-ui/react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const RegisterPage = () => {
+    const { tr } = useLanguage();
     const [formData, setFormData] = useState({
         username: '',
         password: '',
@@ -22,12 +24,12 @@ const RegisterPage = () => {
 
         try {
             await register(formData);
-            toast({ title: 'تم إنشاء الحساب بنجاح', status: 'success' });
+            toast({ title: tr('تم إنشاء الحساب بنجاح', 'Account created successfully'), status: 'success' });
             navigate('/');
         } catch (error: any) {
             toast({
-                title: 'خطأ في التسجيل',
-                description: error.response?.data?.message || 'حدث خطأ',
+                title: tr('خطأ في التسجيل', 'Registration failed'),
+                description: error.response?.data?.message || tr('حدث خطأ', 'Something went wrong'),
                 status: 'error'
             });
         } finally {
@@ -39,28 +41,28 @@ const RegisterPage = () => {
         <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="gray.50">
             <Box bg="white" p={8} borderRadius="lg" shadow="lg" w="450px">
                 <VStack spacing={4} as="form" onSubmit={handleSubmit}>
-                    <Heading size="lg">إنشاء حساب جديد</Heading>
+                    <Heading size="lg">{tr('إنشاء حساب جديد', 'Create a new account')}</Heading>
 
                     <FormControl isRequired>
-                        <FormLabel>اسم المنشأة</FormLabel>
+                        <FormLabel>{tr('اسم المنشأة', 'Business name')}</FormLabel>
                         <Input
                             value={formData.businessName}
                             onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                            placeholder="مثال: مطعم النخيل"
+                            placeholder={tr('مثال: مطعم النخيل', 'Example: Palm Restaurant')}
                         />
                     </FormControl>
 
                     <FormControl isRequired>
-                        <FormLabel>الاسم الكامل</FormLabel>
+                        <FormLabel>{tr('الاسم الكامل', 'Full name')}</FormLabel>
                         <Input
                             value={formData.fullName}
                             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                            placeholder="أحمد محمد"
+                            placeholder={tr('أحمد محمد', 'John Doe')}
                         />
                     </FormControl>
 
                     <FormControl isRequired>
-                        <FormLabel>البريد الإلكتروني</FormLabel>
+                        <FormLabel>{tr('البريد الإلكتروني', 'Email')}</FormLabel>
                         <Input
                             type="email"
                             value={formData.email}
@@ -70,7 +72,7 @@ const RegisterPage = () => {
                     </FormControl>
 
                     <FormControl isRequired>
-                        <FormLabel>اسم المستخدم</FormLabel>
+                        <FormLabel>{tr('اسم المستخدم', 'Username')}</FormLabel>
                         <Input
                             value={formData.username}
                             onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -79,7 +81,7 @@ const RegisterPage = () => {
                     </FormControl>
 
                     <FormControl isRequired>
-                        <FormLabel>كلمة المرور</FormLabel>
+                        <FormLabel>{tr('كلمة المرور', 'Password')}</FormLabel>
                         <Input
                             type="password"
                             value={formData.password}
@@ -89,13 +91,13 @@ const RegisterPage = () => {
                     </FormControl>
 
                     <Button type="submit" colorScheme="blue" width="full" isLoading={loading}>
-                        تسجيل
+                        {tr('تسجيل', 'Register')}
                     </Button>
 
                     <Text fontSize="sm">
-                        لديك حساب؟{' '}
+                        {tr('لديك حساب؟', 'Already have an account?')}{' '}
                         <Link color="blue.500" onClick={() => navigate('/login')}>
-                            سجل دخول
+                            {tr('سجل دخول', 'Sign in')}
                         </Link>
                     </Text>
                 </VStack>

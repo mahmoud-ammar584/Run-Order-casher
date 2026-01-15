@@ -8,46 +8,36 @@ import {
     Collapse,
 } from '@chakra-ui/react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { FiGrid, FiPackage, FiSettings, FiSave, FiChevronDown, FiChevronRight, FiDollarSign, FiBarChart2 } from 'react-icons/fi';
+import { FiGrid, FiPackage, FiSettings, FiSave, FiChevronDown, FiChevronRight, FiDollarSign, FiBarChart2, FiSliders } from 'react-icons/fi';
 import GlobalHeader from '../GlobalHeader';
 import { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const DashboardLayout = () => {
     const location = useLocation();
     const [dashboardOpen, setDashboardOpen] = useState(true);
+    const { tr } = useLanguage();
 
     const navItems = [
         {
-            name: 'لوحة التحكم',
+            name: tr('لوحة التحكم', 'Dashboard'),
             icon: FiGrid,
             path: '#',
             hasSubmenu: true,
             subItems: [
-                { name: 'الأقسام', path: '/dashboard/categories' },
-                { name: 'الأصناف', path: '/dashboard/items' },
-            ]
+                { name: tr('التصنيفات', 'Categories'), path: '/dashboard/categories' },
+                { name: tr('الأصناف', 'Items'), path: '/dashboard/items' },
+            ],
         },
-        { name: 'المخزون', icon: FiPackage, path: '/dashboard/inventory' },
-        { name: 'الوصفات', icon: FiSave, path: '/dashboard/recipes' },
-        { name: 'التقارير', icon: FiBarChart2, path: '/dashboard/reports' },
-        { name: 'المحاسبة', icon: FiDollarSign, path: '/dashboard/accounting' },
-        { name: 'الطاولات', icon: FiSettings, path: '/dashboard/tables' },
+        { name: tr('المخزون', 'Inventory'), icon: FiPackage, path: '/dashboard/inventory' },
+        { name: tr('الوصفات', 'Recipes'), icon: FiSave, path: '/dashboard/recipes' },
+        { name: tr('التقارير', 'Reports'), icon: FiBarChart2, path: '/dashboard/reports' },
+        { name: tr('الحسابات', 'Accounting'), icon: FiDollarSign, path: '/dashboard/accounting' },
+        { name: tr('الطاولات', 'Tables'), icon: FiSettings, path: '/dashboard/tables' },
+        { name: tr('الإعدادات', 'Settings'), icon: FiSliders, path: '/dashboard/settings' },
     ];
 
     return (
-        <Box h="100vh" bg="gray.50">
-            <GlobalHeader />
-            <Flex h="calc(100vh - 60px)">
-                {/* Modern Sidebar */}
-                <Box
-                    w="280px"
-                    bg="linear-gradient(180deg, #1a365d 0%, #2a4365 100%)"
-                    color="white"
-                    display={{ base: 'none', md: 'block' }}
-                    boxShadow="2xl"
-                >
-                    <VStack align="stretch" spacing={0} h="full">
-                        {/* Logo */}
                         <Box p={6} borderBottom="1px" borderColor="whiteAlpha.300">
                             <Text
                                 fontSize="2xl"
@@ -56,14 +46,13 @@ const DashboardLayout = () => {
                                 bgClip="text"
                                 letterSpacing="tight"
                             >
-                                ⚡ Run Order
+                                Run Order
                             </Text>
                             <Text fontSize="xs" color="whiteAlpha.700" mt={1}>
-                                نظام إدارة المطاعم الذكي
+                                {tr('نظام إدارة المطاعم الذكي', 'Smart restaurant management')}
                             </Text>
                         </Box>
 
-                        {/* Navigation */}
                         <VStack align="stretch" spacing={1} p={4} flex={1} overflowY="auto">
                             {navItems.map((item) => (
                                 <Box key={item.name}>
@@ -98,10 +87,10 @@ const DashboardLayout = () => {
                                                             color={location.pathname === subItem.path ? 'white' : 'whiteAlpha.900'}
                                                             bg={location.pathname === subItem.path ? 'blue.500' : 'transparent'}
                                                             _hover={{
-                                                                bg: location.pathname === subItem.path ? 'blue.600' : 'whiteAlpha.200'
+                                                                bg: location.pathname === subItem.path ? 'blue.600' : 'whiteAlpha.200',
                                                             }}
                                                             _active={{
-                                                                bg: location.pathname === subItem.path ? 'blue.700' : 'whiteAlpha.300'
+                                                                bg: location.pathname === subItem.path ? 'blue.700' : 'whiteAlpha.300',
                                                             }}
                                                         >
                                                             {subItem.name}
@@ -122,10 +111,10 @@ const DashboardLayout = () => {
                                             color={location.pathname === item.path ? 'white' : 'whiteAlpha.900'}
                                             bg={location.pathname === item.path ? 'blue.500' : 'transparent'}
                                             _hover={{
-                                                bg: location.pathname === item.path ? 'blue.600' : 'whiteAlpha.200'
+                                                bg: location.pathname === item.path ? 'blue.600' : 'whiteAlpha.200',
                                             }}
                                             _active={{
-                                                bg: location.pathname === item.path ? 'blue.700' : 'whiteAlpha.300'
+                                                bg: location.pathname === item.path ? 'blue.700' : 'whiteAlpha.300',
                                             }}
                                         >
                                             {item.name}
@@ -135,7 +124,6 @@ const DashboardLayout = () => {
                             ))}
                         </VStack>
 
-                        {/* Footer Links */}
                         <VStack p={4} spacing={3} borderTop="1px" borderColor="whiteAlpha.300">
                             <Button
                                 as={Link}
@@ -146,13 +134,13 @@ const DashboardLayout = () => {
                                 w="full"
                                 fontWeight="bold"
                                 _hover={{
-                                    bgGradient: "linear(to-r, green.500, green.700)",
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "lg"
+                                    bgGradient: 'linear(to-r, green.500, green.700)',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: 'lg',
                                 }}
                                 transition="all 0.2s"
                             >
-                                🛒 فتح نقطة البيع
+                                {tr('فتح نقطة البيع', 'Open POS')}
                             </Button>
                             <Button
                                 as={Link}
@@ -163,24 +151,23 @@ const DashboardLayout = () => {
                                 w="full"
                                 fontWeight="bold"
                                 _hover={{
-                                    bgGradient: "linear(to-r, orange.500, orange.700)",
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "lg"
+                                    bgGradient: 'linear(to-r, orange.500, orange.700)',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: 'lg',
                                 }}
                                 transition="all 0.2s"
                             >
-                                🍳 شاشة المطبخ
+                                {tr('فتح شاشة المطبخ', 'Open KDS')}
                             </Button>
                         </VStack>
-                    </VStack>
-                </Box>
+                    </VStack >
+                </Box >
 
-                {/* Main Content */}
-                <Box flex={1} overflow="auto">
-                    <Outlet />
-                </Box>
-            </Flex>
-        </Box>
+    <Box flex={1} overflow="auto">
+        <Outlet />
+    </Box>
+            </Flex >
+        </Box >
     );
 };
 

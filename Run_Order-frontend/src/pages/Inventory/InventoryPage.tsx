@@ -28,6 +28,7 @@ import {
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import axios from 'axios';
 import { API_BASE } from '../../config';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface Ingredient {
     id: string;
@@ -42,13 +43,13 @@ interface Ingredient {
 }
 
 const InventoryPage = () => {
+    const { tr, locale } = useLanguage();
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const toast = useToast();
 
-    // Form State
     const [formData, setFormData] = useState({
         name_ar: '',
         name_en: '',
@@ -71,8 +72,8 @@ const InventoryPage = () => {
         } catch (error) {
             console.error('Error loading ingredients:', error);
             toast({
-                title: 'خطأ',
-                description: 'فشل تحميل المخزون',
+                title: tr('خطأ', 'Error'),
+                description: tr('فشل تحميل المخزون', 'Failed to load inventory'),
                 status: 'error',
                 duration: 3000,
             });
@@ -83,10 +84,10 @@ const InventoryPage = () => {
         try {
             if (editingIngredient) {
                 await axios.patch(`${API_BASE}/inventory/ingredients/${editingIngredient.id}`, formData);
-                toast({ title: 'تم التحديث بنجاح', status: 'success' });
+                toast({ title: tr('تم التحديث بنجاح', 'Updated successfully'), status: 'success' });
             } else {
                 await axios.post(`${API_BASE}/inventory/ingredients`, formData);
-                toast({ title: 'تم الإضافة بنجاح', status: 'success' });
+                toast({ title: tr('تمت الإضافة بنجاح', 'Added successfully'), status: 'success' });
             }
             onClose();
             loadIngredients();
@@ -103,8 +104,8 @@ const InventoryPage = () => {
             });
         } catch (error) {
             toast({
-                title: 'خطأ',
-                description: 'فشل حفظ البيانات',
+                title: tr('خطأ', 'Error'),
+                description: tr('فشل حفظ البيانات', 'Failed to save data'),
                 status: 'error',
             });
         }
@@ -126,13 +127,13 @@ const InventoryPage = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('هل أنت متأكد من الحذف؟')) return;
+        if (!window.confirm(tr('هل أنت متأكد من الحذف؟', 'Are you sure you want to delete?'))) return;
         try {
             await axios.delete(`${API_BASE}/inventory/ingredients/${id}`);
-            toast({ title: 'تم الحذف', status: 'success' });
+            toast({ title: tr('تم الحذف', 'Deleted'), status: 'success' });
             loadIngredients();
         } catch (error) {
-            toast({ title: 'خطأ في الحذف', status: 'error' });
+            toast({ title: tr('خطأ في الحذف', 'Delete failed'), status: 'error' });
         }
     };
 
@@ -140,17 +141,21 @@ const InventoryPage = () => {
         i.name_ar.includes(searchQuery) || i.name_en.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const getIngredientName = (ingredient: Ingredient) => {
+        return locale === 'ar' ? ingredient.name_ar : (ingredient.name_en || ingredient.name_ar);
+    };
+
     return (
         <Box p={6}>
             <HStack justify="space-between" mb={6}>
-                <Text fontSize="2xl" fontWeight="bold">إدارة المخزون</Text>
+                <Text fontSize="2xl" fontWeight="bold">{tr('إدارة المخزون', 'Inventory Management')}</Text>
                 <Button leftIcon={<FiPlus />} colorScheme="blue" onClick={() => { setEditingIngredient(null); onOpen(); }}>
-                    إضافة مكون
+                    {tr('إضافة مكون', 'Add Ingredient')}
                 </Button>
             </HStack>
 
             <Input
-                placeholder="بحث عن مكون..."
+                placeholder={tr('بحث عن مكون...', 'Search for an ingredient...')}
                 mb={6}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -161,21 +166,21 @@ const InventoryPage = () => {
                 <Table variant="simple">
                     <Thead bg="gray.50">
                         <Tr>
-                            <Th>الاسم (عربي)</Th>
-                            <Th>الاسم (إنجليزي)</Th>
-                            <Th isNumeric>الكمية (وحدة التخزين)</Th>
-                            <Th>وحدة القياس</Th>
-                            <Th isNumeric>عامل التحويل</Th>
-                            <Th isNumeric>التكلفة / وحدة تخزين</Th>
-                            <Th>الحالة</Th>
-                            <Th>إجراءات</Th>
+                            <Th>{tr('الاسم', 'Name')}</Th>
+                            <Th>{tr('الاسم (English)', 'Name (English)')}</Th>
+                            <Th isNumeric>{tr('الكمية (وحدة التخزين)', 'Quantity (storage unit)')}</Th>
+                            <Th>{tr('وحدة القياس', 'Unit')}</Th>
+                            <Th isNumeric>{tr('عامل التحويل', 'Conversion factor')}</Th>
+                            <Th isNumeric>{tr('التكلفة / وحدة تخزين', 'Cost / storage unit')}</Th>
+                            <Th>{tr('الحالة', 'Status')}</Th>
+                            <Th>{tr('إجراءات', 'Actions')}</Th>
                         </Tr>
                     </Thead>
                     <Tbody>
                         {filteredIngredients.map((ingredient) => (
                             <Tr key={ingredient.id}>
-                                <Td fontWeight="bold">{ingredient.name_ar}</Td>
-                                <Td>{ingredient.name_en}</Td>
+                                <Td fontWeight="bold">{getIngredientName(ingredient)}</Td>
+                                <Td>{locale === 'ar' ? ingredient.name_en : ingredient.name_ar}</Td>
                                 <Td isNumeric>
                                     <Badge
                                         colorScheme={Number(ingredient.current_stock) <= Number(ingredient.reorder_point) ? 'red' : 'green'}
@@ -189,19 +194,19 @@ const InventoryPage = () => {
                                 <Td isNumeric>{ingredient.cost_per_unit}</Td>
                                 <Td>
                                     {Number(ingredient.current_stock) <= Number(ingredient.reorder_point) && (
-                                        <Badge colorScheme="red">منخفض</Badge>
+                                        <Badge colorScheme="red">{tr('منخفض', 'Low')}</Badge>
                                     )}
                                 </Td>
                                 <Td>
                                     <HStack spacing={2}>
                                         <IconButton
-                                            aria-label="Edit"
+                                            aria-label={tr('تعديل', 'Edit')}
                                             icon={<FiEdit2 />}
                                             size="sm"
                                             onClick={() => handleEdit(ingredient)}
                                         />
                                         <IconButton
-                                            aria-label="Delete"
+                                            aria-label={tr('حذف', 'Delete')}
                                             icon={<FiTrash2 />}
                                             size="sm"
                                             colorScheme="red"
@@ -218,17 +223,17 @@ const InventoryPage = () => {
             <Modal isOpen={isOpen} onClose={onClose}>
                 <ModalOverlay />
                 <ModalContent>
-                    <ModalHeader>{editingIngredient ? 'تعديل مكون' : 'إضافة مكون جديد'}</ModalHeader>
+                    <ModalHeader>{editingIngredient ? tr('تعديل مكون', 'Edit Ingredient') : tr('إضافة مكون جديد', 'Add New Ingredient')}</ModalHeader>
                     <ModalBody>
                         <FormControl mb={3}>
-                            <FormLabel>الاسم بالعربية</FormLabel>
+                            <FormLabel>{tr('الاسم بالعربية', 'Name (Arabic)')}</FormLabel>
                             <Input
                                 value={formData.name_ar}
                                 onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
                             />
                         </FormControl>
                         <FormControl mb={3}>
-                            <FormLabel>الاسم بالإنجليزية</FormLabel>
+                            <FormLabel>{tr('الاسم بالإنجليزية', 'Name (English)')}</FormLabel>
                             <Input
                                 value={formData.name_en}
                                 onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
@@ -236,46 +241,48 @@ const InventoryPage = () => {
                         </FormControl>
                         <HStack mb={3}>
                             <FormControl>
-                                <FormLabel>وحدة التخزين (المخزون)</FormLabel>
+                                <FormLabel>{tr('وحدة التخزين', 'Storage unit')}</FormLabel>
                                 <Select
                                     value={formData.storage_unit}
                                     onChange={(e) => setFormData({ ...formData, storage_unit: e.target.value })}
                                 >
-                                    <option value="kg">كيلو جرام (kg)</option>
-                                    <option value="g">جرام (g)</option>
-                                    <option value="l">لتر (L)</option>
-                                    <option value="ml">ملليلتر (ml)</option>
-                                    <option value="box">صندوق (Box)</option>
-                                    <option value="gallon">جالون (Gallon)</option>
-                                    <option value="pcs">قطعة (Piece)</option>
+                                    <option value="kg">{tr('كيلو جرام (kg)', 'Kilogram (kg)')}</option>
+                                    <option value="g">{tr('جرام (g)', 'Gram (g)')}</option>
+                                    <option value="l">{tr('لتر (L)', 'Liter (L)')}</option>
+                                    <option value="ml">{tr('ملليلتر (ml)', 'Milliliter (ml)')}</option>
+                                    <option value="box">{tr('صندوق (Box)', 'Box')}</option>
+                                    <option value="gallon">{tr('جالون (Gallon)', 'Gallon')}</option>
+                                    <option value="pcs">{tr('قطعة (Piece)', 'Piece')}</option>
                                 </Select>
                             </FormControl>
                             <FormControl>
-                                <FormLabel>وحدة القياس (للوصفات)</FormLabel>
+                                <FormLabel>{tr('وحدة القياس', 'Usage unit')}</FormLabel>
                                 <Select
                                     value={formData.unit}
                                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                                 >
-                                    <option value="kg">كيلو جرام (kg)</option>
-                                    <option value="g">جرام (g)</option>
-                                    <option value="l">لتر (L)</option>
-                                    <option value="ml">ملليلتر (ml)</option>
-                                    <option value="pcs">قطعة (Piece)</option>
+                                    <option value="kg">{tr('كيلو جرام (kg)', 'Kilogram (kg)')}</option>
+                                    <option value="g">{tr('جرام (g)', 'Gram (g)')}</option>
+                                    <option value="l">{tr('لتر (L)', 'Liter (L)')}</option>
+                                    <option value="ml">{tr('ملليلتر (ml)', 'Milliliter (ml)')}</option>
+                                    <option value="pcs">{tr('قطعة (Piece)', 'Piece')}</option>
                                 </Select>
                             </FormControl>
                         </HStack>
                         <FormControl mb={3}>
-                            <FormLabel>عامل التحويل (كم {formData.unit} في 1 {formData.storage_unit}؟)</FormLabel>
+                            <FormLabel>
+                                {tr(`عامل التحويل (كم ${formData.unit} في 1 ${formData.storage_unit}؟)`, `Conversion factor (how many ${formData.unit} in 1 ${formData.storage_unit}?)`)}
+                            </FormLabel>
                             <Input
                                 type="number"
                                 value={formData.conversion_factor}
                                 onChange={(e) => setFormData({ ...formData, conversion_factor: Number(e.target.value) })}
-                                placeholder="مثال: 1000 (إذا كان 1 كيلو = 1000 جرام)"
+                                placeholder={tr('مثال: 1000', 'Example: 1000')}
                             />
                         </FormControl>
                         <HStack mb={3}>
                             <FormControl>
-                                <FormLabel>الكمية الحالية ({formData.storage_unit})</FormLabel>
+                                <FormLabel>{tr(`الكمية الحالية (${formData.storage_unit})`, `Current stock (${formData.storage_unit})`)}</FormLabel>
                                 <Input
                                     type="number"
                                     value={formData.current_stock}
@@ -283,7 +290,7 @@ const InventoryPage = () => {
                                 />
                             </FormControl>
                             <FormControl>
-                                <FormLabel>التكلفة لكل {formData.storage_unit}</FormLabel>
+                                <FormLabel>{tr(`التكلفة لكل ${formData.storage_unit}`, `Cost per ${formData.storage_unit}`)}</FormLabel>
                                 <Input
                                     type="number"
                                     value={formData.cost_per_unit}
@@ -292,7 +299,7 @@ const InventoryPage = () => {
                             </FormControl>
                         </HStack>
                         <FormControl>
-                            <FormLabel>حد إعادة الطلب</FormLabel>
+                            <FormLabel>{tr('حد إعادة الطلب', 'Reorder point')}</FormLabel>
                             <Input
                                 type="number"
                                 value={formData.reorder_point}
@@ -301,8 +308,8 @@ const InventoryPage = () => {
                         </FormControl>
                     </ModalBody>
                     <ModalFooter>
-                        <Button variant="ghost" mr={3} onClick={onClose}>إلغاء</Button>
-                        <Button colorScheme="blue" onClick={handleSubmit}>حفظ</Button>
+                        <Button variant="ghost" mr={3} onClick={onClose}>{tr('إلغاء', 'Cancel')}</Button>
+                        <Button colorScheme="blue" onClick={handleSubmit}>{tr('حفظ', 'Save')}</Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>

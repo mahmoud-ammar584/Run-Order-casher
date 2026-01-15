@@ -1,0 +1,21 @@
+.skeleton {
+    background-color: var(--color-bg-subtle);
+    /* Use subtle layout bg or slightly darker */
+    border-radius: 4px;
+    animation: pulse 1.5s ease-in-out infinite;
+    display: block;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
